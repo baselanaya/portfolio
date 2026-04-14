@@ -1,0 +1,67 @@
+---
+title: "The Real Limits of Local LLMs on an RTX 4070 8GB"
+date: "2025-03-15"
+summary: "What actually fits, what doesn't, and how to get the most out of 8GB VRAM for production inference."
+tags: ["LLM", "Hardware", "Inference", "SGLang"]
+readingTime: 6
+---
+
+## The 8GB Wall
+
+Running LLMs locally on consumer hardware is genuinely useful in 2025 — but 8GB VRAM is a real constraint that requires deliberate model selection. Here's what I've learned running inference on an RTX 4070 for Cynosure and Mercer.
+
+## What Actually Fits
+
+The practical sweet spot for 8GB is **4-bit quantized models up to ~8B parameters**. Here's a rough guide:
+
+| Model | Quant | VRAM | Notes |
+|---|---|---|---|
+| Qwen2.5-Coder-7B | FP8 | ~7.2GB | Tight but works. Best for code. |
+| Qwen3.5-4B | FP16 | ~4.8GB | Comfortable. Good reasoning. |
+| Llama-3.1-8B | Q4_K_M | ~5.1GB | GGUF via llama.cpp |
+| Mistral-7B | Q5_K_M | ~5.9GB | Good general use |
+| Chronos-2 120M | FP32 | ~0.6GB | Forecasting. Leave room for this. |
+
+Note: these are *inference* numbers. Fine-tuning needs 3-4x more.
+
+## SGLang vs llama.cpp vs Ollama
+
+For production workloads, SGLang consistently outperforms Ollama on throughput:
+
+```bash
+# SGLang server startup
+python -m sglang.launch_server \
+  --model-path Qwen/Qwen2.5-Coder-7B-Instruct-FP8 \
+  --port 30000 \
+  --mem-fraction-static 0.85
+```
+
+The `--mem-fraction-static 0.85` is critical — it prevents SGLang from trying to grab all VRAM and leaving nothing for the OS.
+
+## The Chronos Pattern
+
+For Cynosure, I run two models simultaneously: Qwen3.5-4B for reasoning and Chronos-2 120M for time-series forecasting. At 120M parameters, Chronos is small enough that both fit with headroom:
+
+```python
+# Load forecaster first (smaller, pinned)
+forecaster = ChronosPipeline.from_pretrained(
+    "amazon/chronos-t5-small",
+    device_map="cuda",
+    torch_dtype=torch.float32,
+)
+
+# Then LLM at ~85% remaining VRAM
+llm_client = openai.Client(base_url="http://localhost:30000/v1")
+```
+
+## What Doesn't Work
+
+- **13B+ models at FP16/BF16**: won't fit, period.
+- **Vision models with large encoders**: CLIP + LLM together almost always OOMs.
+- **Batch sizes > 4**: latency explodes. Keep batch size at 1-2 for interactive use.
+
+## The Honest Answer
+
+8GB is enough to build real production systems — Cynosure trades live on this setup, Mercer runs SQL generation — but you need to be deliberate. Pick models that fit with headroom, use SGLang for serving, and don't try to run two heavy models at once.
+
+If you need more, you need more VRAM. There's no trick that changes the math.
