@@ -37,7 +37,7 @@ export default function PixelName() {
           "font-pixel tracking-tight leading-none select-none",
           hovered ? "text-gradient" : "",
         ].join(" ")}
-        style={{ fontSize: "clamp(44px, 10vw, 128px)" }}
+        style={{ fontSize: "clamp(32px, 9vw, 128px)" }}
       >
         {CHARS.map((char, i) =>
           char === " " ? (
@@ -59,7 +59,7 @@ export default function PixelName() {
         className="inline-block ml-2 mb-[0.08em]"
         style={{
           color: "var(--color-amber)",
-          fontSize: "clamp(32px, 7vw, 96px)",
+          fontSize: "clamp(24px, 6.5vw, 96px)",
           lineHeight: 1,
         }}
         initial={{ opacity: 0 }}

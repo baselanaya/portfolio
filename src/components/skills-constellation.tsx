@@ -234,13 +234,14 @@ export default function SkillsConstellation() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce]);
 
-  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    mouseRef.current = { x: mx, y: my };
+  function getCanvasPos(canvas: HTMLCanvasElement, clientX: number, clientY: number) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
 
-    // Hit test nodes
+  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+    const { x: mx, y: my } = getCanvasPos(e.currentTarget, e.clientX, e.clientY);
+    mouseRef.current = { x: mx, y: my };
     const hit = nodesRef.current.find((n) => {
       const dx = n.x - mx;
       const dy = n.y - my;
@@ -250,6 +251,25 @@ export default function SkillsConstellation() {
   }
 
   function onMouseLeave() {
+    mouseRef.current = null;
+    setHovered(null);
+  }
+
+  function onTouchMove(e: React.TouchEvent<HTMLCanvasElement>) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const { x: mx, y: my } = getCanvasPos(e.currentTarget, touch.clientX, touch.clientY);
+    mouseRef.current = { x: mx, y: my };
+    const hit = nodesRef.current.find((n) => {
+      const dx = n.x - mx;
+      const dy = n.y - my;
+      return Math.sqrt(dx * dx + dy * dy) <= n.radius;
+    });
+    setHovered(hit?.id ?? null);
+  }
+
+  function onTouchEnd() {
     mouseRef.current = null;
     setHovered(null);
   }
@@ -282,11 +302,14 @@ export default function SkillsConstellation() {
         ref={canvasRef}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         style={{
           width: "100%",
           height: "320px",
           cursor: hovered ? "pointer" : "default",
           display: "block",
+          touchAction: "none",
         }}
       />
     </div>

@@ -116,7 +116,7 @@ export default function GitHubHeatmap({ username = "baselanaya" }: { username?: 
           style={{ height: "112px", backgroundColor: "var(--color-surface-2)" }}
         />
       ) : (
-        <div style={{ position: "relative", overflowX: "auto" }}>
+        <div style={{ position: "relative", overflowX: "auto", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
           {/* Month labels */}
           <div
             style={{

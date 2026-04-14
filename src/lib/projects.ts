@@ -22,7 +22,7 @@ export const projects: Project[] = [
     status: "active",
     github: "https://github.com/baselanaya/kernex",
     featured: true,
-    year: 2025,
+    year: 2026,
   },
   {
     slug: "mercer",
@@ -34,7 +34,7 @@ export const projects: Project[] = [
     status: "active",
     github: "https://github.com/baselanaya/mercer",
     featured: true,
-    year: 2025,
+    year: 2026,
   },
   {
     slug: "cynosure",
@@ -45,28 +45,6 @@ export const projects: Project[] = [
     tags: ["Python", "Trading", "LLM", "DuckDB"],
     status: "active",
     featured: true,
-    year: 2025,
-  },
-  {
-    slug: "valerie",
-    name: "Valerie",
-    tagline: "500M parameter visual speech recognition model",
-    description:
-      "Visual speech recognition model based on VALLR architecture. Developed for a Lambda Labs Research Grant application. 500M parameters trained on visual-only speech signals.",
-    tags: ["PyTorch", "Vision", "Speech", "Research"],
-    status: "archived",
-    featured: false,
-    year: 2024,
-  },
-  {
-    slug: "encleare",
-    name: "Encleare",
-    tagline: "Mobile-first AI personal finance PWA",
-    description:
-      "Personal finance PWA using Plaid, Claude Haiku for AI insights, Supabase, and Stripe. $9.99/month.",
-    tags: ["Next.js", "Plaid", "Claude", "Supabase"],
-    status: "active",
-    featured: false,
-    year: 2025,
+    year: 2026,
   },
 ];

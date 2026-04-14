@@ -47,7 +47,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       {/* Name */}
       <h3
         className="font-pixel tracking-tight leading-tight"
-        style={{ fontSize: "28px", color: "var(--color-text)" }}
+        style={{ fontSize: "clamp(22px, 5vw, 28px)", color: "var(--color-text)" }}
       >
         {project.name}
       </h3>

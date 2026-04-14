@@ -106,7 +106,7 @@ export default function Timeline({ experience, education }: TimelineProps) {
               {/* Role title */}
               <h3
                 className="font-pixel tracking-tight leading-tight mb-2"
-                style={{ fontSize: "28px", color: "var(--color-text)" }}
+                style={{ fontSize: "clamp(22px, 5vw, 28px)", color: "var(--color-text)" }}
               >
                 {role.title}
               </h3>

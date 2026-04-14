@@ -11,7 +11,6 @@ import Footer from "@/components/footer";
 import AsciiBackground from "@/components/ascii-background";
 import CommandPaletteProvider from "@/components/command-palette-provider";
 import HiddenTerminal from "@/components/hidden-terminal";
-import AskBasel from "@/components/ask-basel";
 import MiniGame from "@/components/mini-game";
 import "../styles/globals.css";
 
@@ -45,7 +44,6 @@ export default function RootLayout({
         <CommandPaletteProvider />
         <HiddenTerminal />
         <MiniGame />
-        <AskBasel />
         <div className="flex flex-col flex-1">{children}</div>
         <Footer />
       </body>

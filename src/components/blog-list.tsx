@@ -69,9 +69,9 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
 
   return (
     <div>
-      {/* Keyboard hint */}
+      {/* Keyboard hint — hidden on touch devices */}
       <p
-        className="font-mono mb-6"
+        className="hidden md:block font-mono mb-6"
         style={{ fontSize: "10px", color: "var(--color-amber-dim)", letterSpacing: "0.12em" }}
         aria-live="polite"
       >
@@ -141,7 +141,7 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
               <h2
                 className="font-pixel tracking-tight leading-tight transition-colors duration-150"
                 style={{
-                  fontSize: "28px",
+                  fontSize: "clamp(20px, 5vw, 28px)",
                   color: "var(--color-text)",
                 }}
               >

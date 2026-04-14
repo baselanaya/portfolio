@@ -18,7 +18,7 @@ const BIO_LINES = [
 ];
 
 const STATS = [
-  { value: "05", label: "PROJECTS SHIPPED" },
+  { value: "03", label: "PROJECTS SHIPPED" },
   { value: "01", label: "STARTUP FOUNDED" },
   { value: "03+", label: "YEARS BUILDING" },
 ];
@@ -30,8 +30,8 @@ export default function HomePage() {
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section
-        className="relative scanlines flex flex-col justify-center px-[5vw] min-h-screen"
-        style={{ paddingTop: "7rem", paddingBottom: "5rem" }}
+        className="relative scanlines flex flex-col justify-center px-[5vw] min-h-[100dvh]"
+        style={{ paddingTop: "clamp(5rem, 12vh, 9rem)", paddingBottom: "clamp(4rem, 8vh, 6rem)" }}
       >
         {/* Top label */}
         <p
@@ -51,7 +51,7 @@ export default function HomePage() {
         {/* Tagline */}
         <p
           className="font-sans mt-6 max-w-xl"
-          style={{ fontSize: "20px", color: "var(--color-muted)", lineHeight: 1.6 }}
+          style={{ fontSize: "clamp(16px, 4vw, 20px)", color: "var(--color-muted)", lineHeight: 1.6 }}
         >
           Building infrastructure for the age of autonomous AI
         </p>
@@ -165,7 +165,7 @@ export default function HomePage() {
               <div key={label} className="flex items-baseline gap-4">
                 <span
                   className="font-pixel leading-none"
-                  style={{ fontSize: "56px", color: "var(--color-amber)" }}
+                  style={{ fontSize: "clamp(36px, 8vw, 56px)", color: "var(--color-amber)" }}
                 >
                   {value}
                 </span>
@@ -187,7 +187,7 @@ export default function HomePage() {
 
       {/* ── Skills Constellation ─────────────────────────────── */}
       <section className="px-[5vw] py-24 border-t border-border">
-        <SectionHeading index="03" title="SKILLS" subtitle="Hover nodes · watch clusters form" />
+        <SectionHeading index="03" title="SKILLS" subtitle="Touch or hover nodes · watch clusters form" />
         <SkillsConstellation />
       </section>
 

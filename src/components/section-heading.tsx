@@ -40,7 +40,7 @@ export default function SectionHeading({ index, title, subtitle, as: Tag = "h2" 
         {/* Main title */}
         <Tag
           className="font-pixel tracking-tight leading-none uppercase"
-          style={{ fontSize: "clamp(40px, 5vw, 56px)", color: "var(--color-text)" }}
+          style={{ fontSize: "clamp(28px, 5vw, 56px)", color: "var(--color-text)" }}
         >
           {title}
         </Tag>
