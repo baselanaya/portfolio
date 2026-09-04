@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
 
 // CursorGlow — the background "bends" toward the cursor: two large, heavily
 // lagged light blobs (cobalt + cyan) drift after the pointer with spring
 // physics. This runs entirely on motion values, never React state.
 export default function CursorGlow() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() ?? false;
+  // SSR always renders the orb tree; the static reduced-motion variant only
+  // swaps in after mount so hydration output matches the server.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const mx = useMotionValue(-600);
   const my = useMotionValue(-600);
 
@@ -27,7 +31,7 @@ export default function CursorGlow() {
     return () => window.removeEventListener("mousemove", onMove);
   }, [mx, my, reduce]);
 
-  if (reduce) {
+  if (mounted && reduce) {
     return (
       <div
         aria-hidden="true"

@@ -98,7 +98,7 @@ export default async function ProjectPage({ params }: PageProps) {
             className="font-mono mb-4"
             style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.18em" }}
           >
-            PREVIEW — HOW IT WORKS
+            HOW IT WORKS
           </p>
           <ProjectDemo slug={project.slug} />
         </div>
