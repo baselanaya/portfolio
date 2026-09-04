@@ -48,6 +48,13 @@ export default function Footer() {
         >
           now
         </Link>
+        <a
+          href="/feed.xml"
+          className="font-mono text-muted hover:text-signal transition-colors duration-150"
+          style={{ fontSize: "12px" }}
+        >
+          rss
+        </a>
         <Link
           href="/privacy"
           className="font-mono text-muted hover:text-signal transition-colors duration-150"

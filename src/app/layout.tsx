@@ -35,7 +35,10 @@ export const metadata: Metadata = {
   },
   description:
     "Building infrastructure for the age of autonomous AI. Founder of Maximlabs.",
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": "/feed.xml" },
+  },
   openGraph: {
     siteName: "Basel Anaya, AI Engineer",
     type: "website",

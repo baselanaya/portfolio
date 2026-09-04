@@ -3,6 +3,7 @@ import { getPostBySlug, getAllPosts } from "@/lib/blog";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const alt = "Blog post — Basel Anaya";
 
 export async function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
@@ -14,6 +15,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   const title = post?.title ?? "Basel Anaya";
   const tags = post?.tags ?? [];
+  const date = post
+    ? new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+    : "";
 
   return new ImageResponse(
     (
@@ -40,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             }}
           />
           <span style={{ color: "#1D3FBF", fontSize: "14px", letterSpacing: "0.2em" }}>
-            BASEL ANAYA — AI ENGINEER
+            {"BASEL ANAYA · AI ENGINEER"}
           </span>
         </div>
 
@@ -60,6 +64,18 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         {/* Footer row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: "12px" }}>
+            {date && (
+              <div
+                style={{
+                  color: "#57564F",
+                  fontSize: "12px",
+                  padding: "4px 0",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {date}
+              </div>
+            )}
             {tags.slice(0, 4).map((tag) => (
               <div
                 key={tag}
