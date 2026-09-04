@@ -16,8 +16,10 @@ export default function MouseSpotlight() {
       ty = e.clientY;
       if (!raf) {
         raf = requestAnimationFrame(() => {
-          root.style.setProperty("--mx", String(tx));
-          root.style.setProperty("--my", String(ty));
+          // px units are load-bearing: unitless values invalidate the
+          // page-grid's radial-gradient and erase the whole background
+          root.style.setProperty("--mx", `${tx}px`);
+          root.style.setProperty("--my", `${ty}px`);
           raf = 0;
         });
       }
