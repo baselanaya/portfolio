@@ -88,7 +88,11 @@ export function KernexInterface() {
           </motion.div>
         )}
         {show(4600) && (
-          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: [0, 1, 0.3, 1], x: 0 }}
+            transition={{ duration: 0.4, times: [0, 0.5, 0.7, 1] }}
+          >
             <span style={{ color: "#DC2626" }}>BLOCKED</span>
             <span style={{ color: "var(--color-terminal-fg)" }}> connect(2) telemetry.vendor.io:443</span>
           </motion.div>
@@ -185,6 +189,40 @@ GROUP  BY 1 ORDER BY 2 DESC LIMIT 5;`;
             {sql.slice(0, sqlChars)}
             {sqlChars < sql.length && !reduce && <span style={{ color: "var(--color-signal)" }}>▌</span>}
           </pre>
+          {/* candidate strategies racing (stage 4) */}
+          {(stage >= 3 || reduce) && (
+            <div className="flex flex-wrap gap-1.5 self-start">
+              {[
+                { n: "CoT @0.0", win: true },
+                { n: "D&C @0.2", win: false },
+                { n: "P&E @0.3", win: false },
+              ].map((c, i) => {
+                const born = reduce || stage > 3 || (stage === 3 && true);
+                const rejected = (stage >= 4 || reduce) && !c.win;
+                return (
+                  <motion.span
+                    key={c.n}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{
+                      opacity: rejected ? 0.35 : 1,
+                      y: 0,
+                      scale: c.win && (stage >= 4 || reduce) ? 1.04 : 1,
+                    }}
+                    transition={{ delay: i * 0.12 }}
+                    className="font-mono rounded-lg border px-2 py-1"
+                    style={{
+                      fontSize: "9px",
+                      borderColor: c.win && (stage >= 4 || reduce) ? "var(--color-live)" : "var(--color-border)",
+                      color: c.win && (stage >= 4 || reduce) ? "var(--color-live)" : "var(--color-muted)",
+                    }}
+                  >
+                    {c.n}
+                    {c.win && (stage >= 4 || reduce) ? " ✓" : rejected ? " ✗" : ""}
+                  </motion.span>
+                );
+              })}
+            </div>
+          )}
           <AnimatePresence>
             {done && (
               <motion.span
@@ -296,6 +334,21 @@ export function CynosureInterface() {
             vectorEffect="non-scaling-stroke"
             style={{ transition: "all 1.1s linear" }}
           />
+          {!reduce && (
+            <>
+              <line
+                x1="100" y1={String(28 - ((spot[spot.length - 1] - min) / (max - min || 1)) * 24)}
+                x2="100" y2="28"
+                stroke="var(--color-live)" strokeWidth="0.5" strokeDasharray="1.5 1.5" opacity="0.5"
+                style={{ transition: "all 1.1s linear" }}
+              />
+              <circle
+                cx="100" cy={String(28 - ((spot[spot.length - 1] - min) / (max - min || 1)) * 24)}
+                r="1.2" fill="var(--color-live)"
+                style={{ transition: "all 1.1s linear" }}
+              />
+            </>
+          )}
         </svg>
       </div>
       <div className="font-mono p-4 pt-1" style={{ fontSize: "11px", lineHeight: 1.9 }}>
@@ -340,6 +393,21 @@ export function MedFormerInterface() {
             <span className="font-mono mt-2 text-center" style={{ fontSize: "9.5px" }}>
               chest-xray-042.png · 1024×1024
             </span>
+            {((T >= 600 && T < 2000) || reduce) && (
+              <motion.div
+                aria-hidden="true"
+                className="absolute border-2 pointer-events-none"
+                style={{
+                  borderColor: "var(--color-signal)",
+                  borderRadius: 4,
+                  left: "22%", top: "18%", width: "56%", height: "52%",
+                  boxShadow: "0 0 0 1px rgba(43,92,255,0.25)",
+                }}
+                initial={reduce ? undefined : { opacity: 0, scale: 1.15 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            )}
             {!reduce && sweep >= 0 && sweep <= 100 && (
               <div
                 className="absolute left-0 right-0 h-6 pointer-events-none"
@@ -454,6 +522,15 @@ export function CiraxInterface() {
                 <line
                   x1={nodes.pdf.x} y1={nodes.pdf.y} x2={nodes.png.x} y2={nodes.png.y}
                   stroke="var(--color-signal)" strokeWidth="1.4"
+                />
+              )}
+              {!reduce && drawFrac > 0 && (
+                <motion.circle
+                  r="1.6"
+                  fill="var(--color-live)"
+                  initial={{ cx: nodes.docx.x, cy: nodes.docx.y }}
+                  animate={{ cx: [nodes.docx.x, nodes.pdf.x, nodes.png.x], cy: [nodes.docx.y, nodes.pdf.y, nodes.png.y] }}
+                  transition={{ duration: 1.6, delay: reduce ? 0 : 2.2, ease: "easeInOut", times: [0, 0.55, 1] }}
                 />
               )}
               {Object.entries(nodes).map(([name, p]) => (
