@@ -7,7 +7,7 @@ import { education, experience } from "@/lib/experience";
 export const metadata: Metadata = {
   title: "About",
   alternates: { canonical: "/about" },
-  description: "Who Basel Anaya is — AI engineer, founder of Maximlabs, based in Amman, Jordan.",
+  description: "Who Basel Anaya is: AI engineer, founder of Maximlabs, based in Amman, Jordan.",
 };
 
 const LANGUAGES = [
@@ -25,7 +25,7 @@ export default function AboutPage() {
         <PageHeader
           eyebrow="// WHO'S BEHIND THE WORK"
           title="About"
-          subline="I build the systems autonomous agents run on — and I like doing it close to the metal."
+          subline="I build the systems autonomous agents run on, and I like doing it close to the metal."
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -36,7 +36,7 @@ export default function AboutPage() {
               className="font-mono mt-3"
               style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.12em" }}
             >
-              FIG. 01 — PORTRAIT (ASCII RENDER; OPTICAL SENSOR PENDING)
+              ASCII PORTRAIT · REAL PHOTO PENDING
             </p>
           </div>
 
@@ -44,7 +44,7 @@ export default function AboutPage() {
           <div className="lg:col-span-7 flex flex-col gap-5">
             <p style={{ fontSize: "17px", lineHeight: 1.75, color: "var(--color-text)" }}>
               I&apos;m Basel Anaya, an AI engineer from Amman, Jordan, and the
-              founder of Maximlabs — a one-person lab focused on AI
+              founder of Maximlabs, a one-person lab focused on AI
               infrastructure security for autonomous agent workloads.
             </p>
             <p style={{ fontSize: "16px", lineHeight: 1.8, color: "var(--color-muted)" }}>
@@ -52,7 +52,7 @@ export default function AboutPage() {
               what happens when an AI agent has shell access. That led to
               Kernex, a zero-trust kernel-level hypervisor in Rust. It also
               led to inference and orchestration engineering on production
-              insurance platforms — Text-to-SQL against governed Oracle
+              insurance platforms: Text-to-SQL against governed Oracle
               views, document pipelines, and agentic systems at Deriv, and a
               500M-parameter-scale research past at the University of Jordan.
             </p>
@@ -112,7 +112,7 @@ export default function AboutPage() {
               </Link>
             </div>
             <p className="font-mono mt-2" style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.06em" }}>
-              Résumé available on request — email me.
+              Résumé available on request, just email me.
             </p>
             <div className="flex flex-wrap gap-x-5 gap-y-1 mt-5 font-mono" style={{ fontSize: "11px" }}>
               <span style={{ color: "var(--color-muted)" }}>start here:</span>

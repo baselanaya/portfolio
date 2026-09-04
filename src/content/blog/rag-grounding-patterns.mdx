@@ -6,11 +6,11 @@ tags: ["RAG", "LLM", "Production", "Architecture"]
 readingTime: 6
 ---
 
-Every RAG demo works. The corpus is clean, the questions match the passages, and nobody asks what happens when retrieval returns *almost* the right document. Production RAG is a different discipline — here are the patterns that survive contact.
+Every RAG demo works. The corpus is clean, the questions match the passages, and nobody asks what happens when retrieval returns *almost* the right document. Production RAG is a different discipline, here are the patterns that survive contact.
 
 ## 1. The corpus is the model
 
-A retrieval-augmented system's accuracy ceiling is the retrieval corpus quality, not the generator's parameter count. Curation — freshness, coverage, authority — moves benchmarks more than swapping generators. Measure retrieval with recall@k against real questions before touching prompts.
+A retrieval-augmented system's accuracy ceiling is the retrieval corpus quality, not the generator's parameter count. Curation, freshness, coverage, authority, moves benchmarks more than swapping generators. Measure retrieval with recall@k against real questions before touching prompts.
 
 ## 2. Inject citations structurally
 
@@ -27,6 +27,6 @@ A medically fine-tuned LLM will sound more clinical immediately. Accuracy moves 
 
 ## 4. Design the "no answer" path
 
-The production feature demos never have: an explicit refusal path when retrieval confidence is low. A system that says "insufficient context" is more trustworthy — and more useful — than one that guesses.
+The production feature demos never have: an explicit refusal path when retrieval confidence is low. A system that says "insufficient context" is more trustworthy, and more useful, than one that guesses.
 
-I used exactly these techniques in **MedFormer**, my biomedical vision-language model with a medical RAG layer (64.4% average accuracy across medical benchmarks) — the case study includes an interactive simulation of the retrieve-and-ground pipeline: **check it out at [/work/medformer](/work/medformer)**. The same grounding pattern, hardened with governed views, now runs in CoreReportsV2 for insurance reporting.
+I used exactly these techniques in **MedFormer**, my biomedical vision-language model with a medical RAG layer (64.4% average accuracy across medical benchmarks), the case study includes an interactive simulation of the retrieve-and-ground pipeline: **check it out at [/work/medformer](/work/medformer)**. The same grounding pattern, hardened with governed views, now runs in CoreReportsV2 for insurance reporting.

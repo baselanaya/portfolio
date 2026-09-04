@@ -24,20 +24,20 @@ The rule: the *smallest model that clears your quality bar*, then verify headroo
 
 ## 2. Pin the small model first
 
-When Cynosure needed reasoning (qwen3.5:4b via Ollama) and forecasting (TimesFM 2.5 200M) simultaneously, load order was everything: the forecaster goes in first and stays pinned, the reasoning model loads around it. Reverse the order and the big model's allocator grabs the headroom — then the trading loop OOMs mid-position. Deterministic load order turns memory from a lottery into a plan.
+When Cynosure needed reasoning (qwen3.5:4b via Ollama) and forecasting (TimesFM 2.5 200M) simultaneously, load order was everything: the forecaster goes in first and stays pinned, the reasoning model loads around it. Reverse the order and the big model's allocator grabs the headroom, then the trading loop OOMs mid-position. Deterministic load order turns memory from a lottery into a plan.
 
 ## 3. Budget the runtime, not just the weights
 
-Weights are half the bill — KV cache and context are the other half:
+Weights are half the bill, KV cache and context are the other half:
 
-- **llama.cpp (Mercer):** the TurboQuant profile pairs IQ4_XS weights with a q8_0 KV cache — halving cache bytes at negligible quality cost keeps the working set at ~5.4GB.
-- **Ollama (Cynosure):** capping context (3072 tokens) and disabling chain-of-thought (`/nothink`) cut per-call latency from minutes to 5–8 seconds — and shrank the cache the model needs.
+- **llama.cpp (Mercer):** the TurboQuant profile pairs IQ4_XS weights with a q8_0 KV cache, halving cache bytes at negligible quality cost keeps the working set at ~5.4GB.
+- **Ollama (Cynosure):** capping context (3072 tokens) and disabling chain-of-thought (`/nothink`) cut per-call latency from minutes to 5–8 seconds, and shrank the cache the model needs.
 - On SGLang, the equivalent discipline is `--mem-fraction-static`: stop the server from claiming all free VRAM and starving everything else.
 
 Reserve headroom *before* the first request, or the OOM arrives mid-position.
 
 ## 4. Match the runtime to the traffic shape
 
-llama.cpp with an OpenAI-compatible endpoint is the right default for a single-digit-QPS local workload; heavier concurrency is where dedicated serving runtimes earn their keep. Ollama is the fastest path from pull to prototype on the same model family — graduate to the tuned runtime when the prompt is stable.
+llama.cpp with an OpenAI-compatible endpoint is the right default for a single-digit-QPS local workload; heavier concurrency is where dedicated serving runtimes earn their keep. Ollama is the fastest path from pull to prototype on the same model family, graduate to the tuned runtime when the prompt is stable.
 
-I used exactly these techniques in **Cynosure**, my fully local autonomous trading system for OKX perpetual swaps — the case study includes a live simulation of the price stream, forecast line, and decision loop: **check it out at [/work/cynosure](/work/cynosure)**. Mercer runs on the same playbook, with Arctic-Text2SQL-R1-7B TurboQuant at [/work/mercer](/work/mercer).
+I used exactly these techniques in **Cynosure**, my fully local autonomous trading system for OKX perpetual swaps, the case study includes a live simulation of the price stream, forecast line, and decision loop: **check it out at [/work/cynosure](/work/cynosure)**. Mercer runs on the same playbook, with Arctic-Text2SQL-R1-7B TurboQuant at [/work/mercer](/work/mercer).

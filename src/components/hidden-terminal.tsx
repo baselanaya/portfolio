@@ -22,9 +22,9 @@ const HELP_TEXT = `Available commands:
 const COMMANDS: Record<string, string | ((args: string) => string)> = {
   help: HELP_TEXT,
   whoami:
-    "Basel Anaya — AI Engineer, Founder of Maximlabs.\nBuilding infrastructure for the age of autonomous AI.\nBased in Amman, Jordan.",
+    "Basel Anaya, AI Engineer, Founder of Maximlabs.\nBuilding infrastructure for the age of autonomous AI.\nBased in Amman, Jordan.",
   "cat about":
-    "AI engineer focused on building, fine-tuning, and deploying LLMs\nfor real-world impact — from kernel-level security hypervisors\nto document AI pipelines. Founder of Maximlabs.\nPassionate about AI in medicine and robotics.",
+    "AI engineer focused on building, fine-tuning, and deploying LLMs\nfor real-world impact: from kernel-level security hypervisors\nto document AI pipelines. Founder of Maximlabs.\nPassionate about AI in medicine and robotics.",
   "cat skills":
     "Languages  : Rust, Python, TypeScript\nML / AI    : PyTorch, SGLang, Transformers, LLM Fine-tuning\nSystems    : Hypervisors, Kernel-level Security, DuckDB\nWeb        : Next.js, React, Tailwind\nInfra      : Linux, Docker, Hugging Face",
   "cat contact":
@@ -52,7 +52,7 @@ function resolveCommand(raw: string): string {
 export default function HiddenTerminal() {
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<Line[]>([
-    { type: "output", text: "Basel Terminal v1.0.0 — type 'help' to get started" },
+    { type: "output", text: "Basel Terminal v1.0.0. Type 'help' to get started" },
   ]);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);

@@ -10,12 +10,12 @@ import { testimonials } from "@/lib/testimonials";
 const CAPABILITIES = [
   {
     label: "INFERENCE SYSTEMS",
-    text: "Serving quantized LLMs at the edge of VRAM limits — SGLang deployments, FP8 pipelines, throughput tuning on commodity hardware.",
+    text: "Serving quantized LLMs at the edge of VRAM limits: SGLang deployments, FP8 pipelines, throughput tuning on commodity hardware.",
     proof: "Mercer · Cynosure",
   },
   {
     label: "AGENT SECURITY",
-    text: "Zero-trust execution environments that keep autonomous agents inside kernel-level fences — auditable, reproducible, Rust-fast.",
+    text: "Zero-trust execution environments that keep autonomous agents inside kernel-level fences: auditable, reproducible, Rust-fast.",
     proof: "Kernex",
   },
   {
@@ -67,7 +67,7 @@ export default function HomePage() {
                   className="font-mono mb-6"
                   style={{ fontSize: "11px", color: "var(--color-amber-dim)", letterSpacing: "0.2em" }}
                 >
-                  {"// MAXIMLABS — AI INFRASTRUCTURE"}
+                  {"// MAXIMLABS · AI INFRASTRUCTURE"}
                 </p>
                 <h1
                   className="font-display font-semibold tracking-tight leading-[1.02]"
@@ -79,7 +79,7 @@ export default function HomePage() {
                   className="mt-6 max-w-lg"
                   style={{ fontSize: "17px", lineHeight: 1.65, color: "var(--color-muted)" }}
                 >
-                  I&apos;m Basel Anaya — founder of Maximlabs. I design the layer
+                  I&apos;m Basel Anaya, founder of Maximlabs. I design the layer
                   autonomous agents run on: kernel-level sandboxes, local LLM
                   inference, and the data pipelines between them.
                 </p>

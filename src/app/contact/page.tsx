@@ -6,14 +6,14 @@ import { faqJsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with Basel Anaya — reply within 24 hours. Freelance, contract, and full-time AI engineering work.",
+    "Get in touch with Basel Anaya. Replies within 24 hours: freelance, contract, and full-time AI engineering work.",
   alternates: { canonical: "/contact" },
 };
 
 const FAQS = [
   {
     q: "How fast do you reply?",
-    a: "Within 24 hours, usually the same day. Every message lands directly in my inbox — no gatekeepers, no ticket queues.",
+    a: "Within 24 hours, usually the same day. Every message lands directly in my inbox: no gatekeepers, no ticket queues.",
   },
   {
     q: "What kind of work do you take on?",
@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     q: "Do you work with cloud LLM APIs or only local models?",
-    a: "Both. I'm local-first when privacy or cost demands it — Cynosure runs entirely on one GPU — and equally at home with NVIDIA NIM, Claude, or Gemini when the cloud is the right call. The architecture decides, not the hype.",
+    a: "Both. I'm local-first when privacy or cost demands it (Cynosure runs entirely on one GPU), and equally at home with NVIDIA NIM, Claude, or Gemini when the cloud is the right call. The architecture decides, not the hype.",
   },
   {
     q: "What does an engagement look like?",
@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: "Where are you based, and do you work remotely?",
-    a: "Amman, Jordan (UTC+3). I work remotely with international teams — recent collaborations span the UAE, and Deriv's offices across multiple countries.",
+    a: "Amman, Jordan (UTC+3). I work remotely with international teams; recent collaborations span the UAE, and Deriv's offices across multiple countries.",
   },
 ];
 
@@ -59,7 +59,7 @@ export default function ContactPage() {
             RESPONSE TIME: WITHIN 24 HOURS
           </span>
           <span className="font-mono" style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.06em" }}>
-            messages go straight to my inbox — no forms disappearing into a void
+            messages go straight to my inbox: no forms disappearing into a void
           </span>
         </div>
 

@@ -17,40 +17,10 @@ function useTicker(stepMs: number, paused = false): number {
   return tick;
 }
 
-function Chrome({ title, children, dark = false }: { title: string; children: React.ReactNode; dark?: boolean }) {
-  return (
-    <div
-      className="rounded-xl overflow-hidden border shadow-[0_18px_40px_-24px_rgba(22,21,15,0.35)]"
-      style={{
-        borderColor: dark ? "#2A2820" : "var(--color-border)",
-        backgroundColor: dark ? "#12110D" : "#FFFFFF",
-      }}
-    >
-      <div
-        className="flex items-center gap-2 px-3 py-2 border-b"
-        style={{
-          borderColor: dark ? "#2A2820" : "var(--color-border)",
-          backgroundColor: dark ? "#1B1A14" : "var(--color-surface-2)",
-        }}
-      >
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#DC2626" }} />
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--color-signal)" }} />
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--color-live)" }} />
-        <span
-          className="font-mono ml-2 truncate"
-          style={{ fontSize: "9px", color: dark ? "var(--color-terminal-muted)" : "var(--color-muted)", letterSpacing: "0.1em" }}
-        >
-          {title}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 function StatusPill({ children, tone = "ok" }: { children: React.ReactNode; tone?: "ok" | "warn" | "muted" }) {
   const color = tone === "ok" ? "var(--color-live)" : tone === "warn" ? "#EAB308" : "var(--color-muted)";
   return (
+    <>
     <span
       className="font-mono inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5"
       style={{ fontSize: "8.5px", letterSpacing: "0.08em", color, borderColor: color }}
@@ -58,6 +28,7 @@ function StatusPill({ children, tone = "ok" }: { children: React.ReactNode; tone
       <span className="w-1 h-1 rounded-full" style={{ backgroundColor: color }} />
       {children}
     </span>
+    </>
   );
 }
 
@@ -79,8 +50,8 @@ export function KernexInterface() {
   const grant = T > 8200;
 
   return (
-    <Chrome title="kernex — single static binary · 15MB RAM · <2ms boot" dark>
-      <div className="font-mono p-4 sm:p-5 min-h-[248px]" style={{ fontSize: "11.5px", lineHeight: 1.9 }}>
+    <>
+          <div className="font-mono p-4 sm:p-5 min-h-[248px]" style={{ fontSize: "11.5px", lineHeight: 1.9 }}>
         <div style={{ color: "var(--color-terminal-muted)" }}>
           <span style={{ color: "var(--color-signal)" }}>$</span> {cmd}
           {T < 1200 && !reduce && <span style={{ color: "var(--color-signal)" }}>▌</span>}
@@ -167,7 +138,7 @@ export function KernexInterface() {
           </motion.div>
         )}
       </div>
-    </Chrome>
+    </>
   );
 }
 
@@ -197,8 +168,8 @@ GROUP  BY 1 ORDER BY 2 DESC LIMIT 5;`;
   const done = stage >= 6;
 
   return (
-    <Chrome title="mercer — query playground · arctic-r1-7b · 100% local">
-      <div className="grid grid-cols-1 sm:grid-cols-5">
+    <>
+          <div className="grid grid-cols-1 sm:grid-cols-5">
         <div className="sm:col-span-3 p-4 flex flex-col gap-3 border-b sm:border-b-0 sm:border-r" style={{ borderColor: "var(--color-border)" }}>
           <div
             className="self-end rounded-2xl rounded-br-sm px-3.5 py-2"
@@ -260,7 +231,7 @@ GROUP  BY 1 ORDER BY 2 DESC LIMIT 5;`;
           })}
         </div>
       </div>
-    </Chrome>
+    </>
   );
 }
 
@@ -296,8 +267,8 @@ export function CynosureInterface() {
   ];
 
   return (
-    <Chrome title="cynosure — 15m cycle · paper mode · qwen3.5:4b synthesizer" dark>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ backgroundColor: "#2A2820" }}>
+    <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ backgroundColor: "#2A2820" }}>
         {[
           ["SPOT", `$${spot[spot.length - 1].toLocaleString("en-US", { minimumFractionDigits: 1 })}`],
           ["TIMESFM 2.5", "dir ±0.30%"],
@@ -342,7 +313,7 @@ export function CynosureInterface() {
         <div style={{ color: "var(--color-terminal-fg)" }}>05-synth: qwen3.5:4b /nothink · temp 0.1 · 5-8s</div>
         <div style={{ color: "var(--color-live)" }}>05-risk: EV gate ✓ · half-kelly 0.12 · streak ok</div>
       </div>
-    </Chrome>
+    </>
   );
 }
 
@@ -358,8 +329,8 @@ export function MedFormerInterface() {
   const sweep = reduce ? -1 : Math.max(0, Math.min(100, ((T - 600) / 1400) * 100));
 
   return (
-    <Chrome title="MedFormer_UI.ipynb — gradio · idefics2-ft + llama-3-ft + rag">
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 p-4">
+    <>
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 p-4">
         <div className="sm:col-span-2 flex flex-col gap-3">
           <div
             className="relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-5 overflow-hidden"
@@ -424,7 +395,7 @@ export function MedFormerInterface() {
           </AnimatePresence>
         </div>
       </div>
-    </Chrome>
+    </>
   );
 }
 
@@ -446,8 +417,8 @@ export function CiraxInterface() {
   const midY = nodes.docx.y + (nodes.pdf.y - nodes.docx.y) * drawFrac;
 
   return (
-    <Chrome title="cirax serve — localhost:7331 · watch folder idle">
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 p-4">
+    <>
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 p-4">
         <div className="sm:col-span-3 flex flex-col gap-3">
           <div
             className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-5"
@@ -544,6 +515,6 @@ export function CiraxInterface() {
           )}
         </div>
       </div>
-    </Chrome>
+    </>
   );
 }

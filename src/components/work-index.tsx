@@ -10,19 +10,11 @@ const ALL_STATUSES = ["active", "archived"] as const;
 type Status = (typeof ALL_STATUSES)[number];
 
 export default function WorkIndex({ projects }: { projects: Project[] }) {
-  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [activeStatus, setActiveStatus] = useState<Status | null>(null);
 
-  const allTags = useMemo(
-    () => Array.from(new Set(projects.flatMap((p) => p.tags))).sort(),
-    [projects]
+  const filtered = projects.filter((p) =>
+    activeStatus ? p.status === activeStatus : true
   );
-
-  const filtered = projects.filter((p) => {
-    const tagMatch = activeTag ? p.tags.includes(activeTag) : true;
-    const statusMatch = activeStatus ? p.status === activeStatus : true;
-    return tagMatch && statusMatch;
-  });
 
   const chip = (active: boolean) =>
     `font-mono rounded-full px-3 py-1.5 border transition-colors duration-150 ${
@@ -35,26 +27,6 @@ export default function WorkIndex({ projects }: { projects: Project[] }) {
     <div>
       {/* Filters */}
       <div className="flex flex-wrap gap-x-8 gap-y-4 mb-14">
-        <div className="flex flex-wrap gap-2 items-center">
-          <span
-            className="font-mono mr-1"
-            style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.15em" }}
-          >
-            TAG
-          </span>
-          <button className={chip(activeTag === null)} onClick={() => setActiveTag(null)}>
-            all
-          </button>
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              className={chip(activeTag === tag)}
-              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-            >
-              {tag.toLowerCase()}
-            </button>
-          ))}
-        </div>
         <div className="flex flex-wrap gap-2 items-center">
           <span
             className="font-mono mr-1"
@@ -108,17 +80,6 @@ export default function WorkIndex({ projects }: { projects: Project[] }) {
               <p style={{ fontSize: "15px", lineHeight: 1.6, color: "var(--color-muted)" }}>
                 {project.tagline}
               </p>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="font-mono border border-border rounded-full px-2.5 py-1"
-                    style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.06em" }}
-                  >
-                    {tag.toLowerCase()}
-                  </span>
-                ))}
-              </div>
               <span
                 className="font-mono mt-2 inline-flex items-center gap-2 transition-colors duration-150 group-hover:text-signal"
                 style={{ fontSize: "12px", letterSpacing: "0.1em", color: "var(--color-text)" }}

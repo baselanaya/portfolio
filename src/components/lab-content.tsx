@@ -53,7 +53,7 @@ export default function LabContent() {
           The 8GB wall
         </h2>
         <p style={{ fontSize: "14px", color: "var(--color-muted)", marginBottom: "18px" }}>
-          What actually fits on an RTX 4070 — inference numbers, measured the hard way.
+          What actually fits on an RTX 4070: inference numbers, measured the hard way.
         </p>
         <div className="rounded-2xl border border-border bg-surface overflow-x-auto">
           <pre

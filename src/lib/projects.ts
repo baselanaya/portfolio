@@ -33,7 +33,7 @@ export const projects: Project[] = [
     featured: true,
     year: 2026,
     cover: "rings",
-    role: "Creator & maintainer — Maximlabs",
+    role: "Creator & maintainer, Maximlabs",
     metrics: [
       { label: "language", value: "Rust" },
       { label: "surface", value: "5-command CLI" },
@@ -45,7 +45,7 @@ export const projects: Project[] = [
     name: "Mercer",
     tagline: "Open-source Text-to-SQL for messy real-world schemas",
     description:
-      "Text-to-SQL for messy production schemas — a six-stage agentic pipeline (entity retrieval, schema linking, decomposition, candidate generation, execution+selection, taxonomy correction) with local GPU inference. No vector DB required.",
+      "Text-to-SQL for messy production schemas. A six-stage agentic pipeline (entity retrieval, schema linking, decomposition, candidate generation, execution+selection, taxonomy correction) with local GPU inference. No vector DB required.",
     tags: ["Python", "LLM", "SQL", "llama.cpp"],
     status: "active",
     github: "https://github.com/baselanaya/mercer",
@@ -62,16 +62,16 @@ export const projects: Project[] = [
   {
     slug: "cirax",
     name: "Cirax",
-    tagline: "The universal offline file converter — don't upload, convert",
+    tagline: "The universal offline file converter. Don't upload, convert",
     description:
-      "Privacy-first conversion hub that routes between the best engines ever written — FFmpeg, libvips, LibreOffice, Pandoc, Calibre, 7-Zip and more. A Dijkstra search over a 109-format graph finds multi-hop engine chains ranked by fidelity, every job sandboxed in a bubblewrap jail, and local AI OCR via a ~1.3B-param model through Ollama.",
+      "Privacy-first conversion hub that routes between the best engines ever written: FFmpeg, libvips, LibreOffice, Pandoc, Calibre, 7-Zip and more. A Dijkstra search over a 109-format graph finds multi-hop engine chains ranked by fidelity, every job sandboxed in a bubblewrap jail, and local AI OCR via a ~1.3B-param model through Ollama.",
     tags: ["Python", "CLI", "Privacy", "FFmpeg"],
     status: "active",
     github: "https://github.com/baselanaya/Cirax",
     featured: true,
     year: 2026,
     cover: "spark",
-    role: "Creator & maintainer — Maximlabs",
+    role: "Creator & maintainer, Maximlabs",
     metrics: [
       { label: "formats", value: "109" },
       { label: "engines", value: "58 via YAML" },
@@ -83,14 +83,14 @@ export const projects: Project[] = [
     name: "Cynosure",
     tagline: "Fully local autonomous perpetual swap trading system",
     description:
-      "Autonomous 24/7 trading system for OKX perpetual swaps — crypto majors, gold, and equity index perps. An expert pipeline computes a compact MarketBrief (technicals, TimesFM 2.5 forecasts, orderbook depth, regime); a local LLM synthesizes the thesis; every risk check stays deterministic in Python.",
+      "Autonomous 24/7 trading system for OKX perpetual swaps: crypto majors, gold, and equity index perps. An expert pipeline computes a compact MarketBrief (technicals, TimesFM 2.5 forecasts, orderbook depth, regime); a local LLM synthesizes the thesis; every risk check stays deterministic in Python.",
     tags: ["Python", "Trading", "LLM", "Ollama"],
     status: "active",
     github: undefined,
     featured: false,
     year: 2026,
     cover: "candles",
-    role: "Creator — Maximlabs",
+    role: "Creator, Maximlabs",
     metrics: [
       { label: "synthesis", value: "qwen3.5:4b · ollama" },
       { label: "forecasting", value: "TimesFM 2.5 200M" },

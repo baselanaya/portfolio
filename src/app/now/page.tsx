@@ -19,9 +19,9 @@ export default function NowPage() {
     <main className="px-[5vw] pt-36 pb-24">
       <div className="max-w-6xl mx-auto">
         <PageHeader
-          eyebrow="// LIVE FOCUS"
+          
           title="Now"
-          subline="What I'm working on at this exact point in time — updated as things change. Inspired by the /now page tradition."
+          subline="What I'm working on at this exact point in time, updated as things change. In the spirit of the /now page tradition."
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -54,7 +54,7 @@ export default function NowPage() {
                   DAY JOB
                 </p>
                 <p style={{ fontSize: "15px", lineHeight: 1.7, color: "var(--color-muted)" }}>
-                  {currentRole.title} at {currentRole.company} —{" "}
+                  {currentRole.title} at {currentRole.company}.{" "}
                   {currentRole.description[0]}
                 </p>
               </section>
@@ -65,7 +65,7 @@ export default function NowPage() {
                 LEARNING
               </p>
               <p style={{ fontSize: "15px", lineHeight: 1.7, color: "var(--color-muted)" }}>
-                Deeper Rust systems work — GPU fences and capability-based
+                Deeper Rust systems work: GPU fences and capability-based
                 security in kernel space. Inference serving internals: how
                 SGLang schedules memory when two models share one GPU.
               </p>

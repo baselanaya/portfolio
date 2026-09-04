@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-// The Field Monitor — the hero's signature element, sixtytwo-style:
+// Field Monitor: the hero's signature element, sixtytwo-style.
 // an animated ASCII field with real project facts surfacing as data chips.
 // The field is cursor-interactive: characters brighten and densify under
 // the pointer, with a soft lens glow following the mouse.

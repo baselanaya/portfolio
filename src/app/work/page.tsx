@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Work",
   alternates: { canonical: "/work" },
   description:
-    "Projects by Basel Anaya — AI infrastructure, kernel security, LLM inference systems, and data pipelines.",
+    "Projects by Basel Anaya: AI infrastructure, kernel security, LLM inference systems, and data pipelines.",
 };
 
 export default function WorkPage() {
@@ -26,8 +26,8 @@ export default function WorkPage() {
           Work
         </h1>
         <p className="mb-14 max-w-xl" style={{ fontSize: "17px", color: "var(--color-muted)", lineHeight: 1.65 }}>
-          Systems I&apos;ve designed and shipped — from kernel-level hypervisors
-          to local inference servers. Every project opens into its own story.
+          Systems I&apos;ve designed and shipped: from kernel-level hypervisors
+          to local inference servers. Every project opens into its own story, filtered by status.
         </p>
         <WorkIndex projects={projects} />
       </div>

@@ -120,7 +120,7 @@ export default function ContactForm() {
       )}
       {result?.error === "rate_limited" && (
         <p className="font-mono text-[12px] text-terra">
-          Too many messages from your network — try again later, or email me
+          Too many messages from your network. Try again later, or email me
           directly:{" "}
           <a
             href="mailto:baselanaya@gmail.com"

@@ -6,8 +6,9 @@ import Footer from "@/components/footer";
 import CommandPaletteProvider from "@/components/command-palette-provider";
 import dynamic from "next/dynamic";
 import MouseSpotlight from "@/components/mouse-spotlight";
+import CursorGlow from "@/components/cursor-glow";
 
-// Easter egg, below the fold by definition — keep it out of the critical bundle
+// Easter egg: lazy-loaded to keep it out of the critical bundle
 const HiddenTerminal = dynamic(() => import("@/components/hidden-terminal"));
 import Analytics from "@/components/analytics";
 import StickyCta from "@/components/sticky-cta";
@@ -29,14 +30,14 @@ const instrument = Instrument_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://baselanaya.com"),
   title: {
-    default: "Basel Anaya — AI Engineer",
-    template: "%s — Basel Anaya",
+    default: "Basel Anaya, AI Engineer",
+    template: "%s | Basel Anaya",
   },
   description:
     "Building infrastructure for the age of autonomous AI. Founder of Maximlabs.",
   alternates: { canonical: "/" },
   openGraph: {
-    siteName: "Basel Anaya — AI Engineer",
+    siteName: "Basel Anaya, AI Engineer",
     type: "website",
   },
 };
@@ -69,6 +70,7 @@ export default function RootLayout({
         {/* Engineering-paper background: fine grid fading out below the fold,
             plus a cursor spotlight and film grain (body::before). */}
         <div className="page-grid" aria-hidden="true" />
+        <CursorGlow />
         <MouseSpotlight />
         <Nav />
         <CommandPaletteProvider />

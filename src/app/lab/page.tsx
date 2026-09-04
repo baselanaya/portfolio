@@ -5,7 +5,7 @@ import LabContent from "@/components/lab-content";
 export const metadata: Metadata = {
   title: "Lab",
   alternates: { canonical: "/lab" },
-  description: "Experiments, benchmarks, and games — the playground side of Basel Anaya's work.",
+  description: "Experiments, benchmarks, and games. The playground side of Basel Anaya's work.",
 };
 
 export default function LabPage() {
@@ -13,9 +13,9 @@ export default function LabPage() {
     <main className="px-[5vw] pt-36 pb-24">
       <div className="max-w-6xl mx-auto">
         <PageHeader
-          eyebrow="// EXPERIMENTS & BENCHMARKS"
+          
           title="Lab"
-          subline="The playground side of the work — benchmarks measured on real hardware, small experiments, and one game that used to be a secret."
+          subline="Benchmarks measured on real hardware, small experiments, and one game that used to be a secret."
         />
         <LabContent />
       </div>

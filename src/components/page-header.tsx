@@ -3,18 +3,20 @@ export default function PageHeader({
   title,
   subline,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   subline?: string;
 }) {
   return (
     <div className="mb-14">
-      <p
-        className="font-mono mb-5"
-        style={{ fontSize: "11px", color: "var(--color-amber-dim)", letterSpacing: "0.2em" }}
-      >
-        {eyebrow}
-      </p>
+      {eyebrow && (
+        <p
+          className="font-mono mb-5"
+          style={{ fontSize: "11px", color: "var(--color-amber-dim)", letterSpacing: "0.2em" }}
+        >
+          {eyebrow}
+        </p>
+      )}
       <h1
         className="font-display font-semibold tracking-tight"
         style={{ fontSize: "clamp(40px, 6vw, 72px)" }}

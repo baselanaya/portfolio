@@ -5,7 +5,7 @@ import PageHeader from "@/components/page-header";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How baselanaya.com handles your data — contact form, analytics, and what never leaves this site.",
+    "How baselanaya.com handles your data: contact form, analytics, and what never leaves this site.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -32,7 +32,7 @@ const SECTIONS = [
   {
     h: "What never happens",
     p: [
-      "No cookies for marketing. No data brokering. No embedded third-party ad scripts. No dark patterns — the only form on this site emails me, that's it.",
+      "No cookies for marketing. No data brokering. No embedded third-party ad scripts. No dark patterns. The only form on this site emails me, that's it.",
     ],
   },
   {

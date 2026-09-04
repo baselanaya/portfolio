@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Experience",
   alternates: { canonical: "/experience" },
   description:
-    "Work history, education, and certifications — Basel Anaya, AI Engineer specialized in LLM systems, agentic pipelines, and document AI.",
+    "Work history, education, and certifications. AI Engineer specialized in LLM systems, agentic pipelines, and document AI.",
 };
 
 const TYPE_LABELS: Record<Role["type"], string> = {
@@ -26,9 +26,9 @@ export default function ExperiencePage() {
     <main className="px-[5vw] pt-36 pb-24">
       <div className="max-w-6xl mx-auto">
         <PageHeader
-          eyebrow="// ROLES, EDUCATION & CERTS"
+          
           title="Experience"
-          subline="AI engineer with 2+ years across insurance, EdTech, and fintech — from founding an AI department to leading a production Text-to-SQL rebuild."
+          subline="AI engineer with 2+ years across insurance, EdTech, and fintech: from founding an AI department to leading a production Text-to-SQL rebuild."
         />
 
         <div className="flex flex-col">
@@ -42,7 +42,7 @@ export default function ExperiencePage() {
                     className="font-mono"
                     style={{ fontSize: "12px", color: isActive ? "var(--color-amber-dim)" : "var(--color-muted)", letterSpacing: "0.05em" }}
                   >
-                    {role.start} — {role.end}
+                    {role.start} - {role.end}
                   </span>
                   <span className="font-mono" style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.04em" }}>
                     {role.location}
@@ -75,7 +75,7 @@ export default function ExperiencePage() {
                   <ul className="flex flex-col gap-1.5">
                     {role.description.map((item) => (
                       <li key={item} className="flex gap-2.5" style={{ fontSize: "14.5px", lineHeight: 1.65, color: "var(--color-muted)" }}>
-                        <span style={{ color: "var(--color-amber-dim)" }} aria-hidden="true">—</span>
+                        <span style={{ color: "var(--color-amber-dim)" }} aria-hidden="true">-</span>
                         {item}
                       </li>
                     ))}

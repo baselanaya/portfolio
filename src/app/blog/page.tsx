@@ -17,7 +17,7 @@ export default function BlogPage() {
     <main className="px-[5vw] pt-36 pb-24">
       <div className="max-w-6xl mx-auto">
         <PageHeader
-          eyebrow="// NOTES FROM THE BENCH"
+          
           title="Writing"
           subline="Field notes on AI infrastructure, LLM inference on real hardware, systems programming, and the schemas nobody warns you about."
         />

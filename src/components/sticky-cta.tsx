@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-// Sticky mobile CTA — appears after the visitor scrolls past the hero,
+// Sticky mobile CTA: appears after the visitor scrolls past the hero,
 // sits above the mobile bottom nav, hidden on desktop.
 export default function StickyCta() {
   const [visible, setVisible] = useState(false);

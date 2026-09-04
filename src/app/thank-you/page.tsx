@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Message received",
-  description: "Your message is in my inbox — I'll reply within 24 hours.",
+  description: "Your message is in my inbox. I'll reply within 24 hours.",
   robots: { index: false },
 };
 
@@ -30,7 +30,7 @@ export default function ThankYouPage() {
         </h1>
         <p className="mb-10" style={{ fontSize: "17px", lineHeight: 1.7, color: "var(--color-muted)" }}>
           Your message is in my inbox. I read everything myself and reply
-          within 24 hours — usually sooner.
+          within 24 hours, usually sooner.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/work" className="btn-solid">

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
 import type { Project } from "@/lib/projects";
 
-// Procedural ASCII covers — each project gets a deterministic pattern
+// Procedural ASCII covers: each project gets a deterministic pattern
 // derived from its slug, drawn live on canvas: the field gently undulates,
 // and the cursor brightens and repels the characters it passes over.
 

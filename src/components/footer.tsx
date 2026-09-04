@@ -6,7 +6,7 @@ export default function Footer() {
       className="border-t border-border mt-auto px-[5vw] py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
     >
       <span className="font-mono text-muted" style={{ fontSize: "12px" }}>
-        © {new Date().getFullYear()} Basel Anaya — Maximlabs · Amman, Jordan
+        © {new Date().getFullYear()} Basel Anaya, Maximlabs · Amman, Jordan
       </span>
       <div className="flex flex-wrap gap-6">
         <a

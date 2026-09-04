@@ -67,7 +67,7 @@ export const experience: Role[] = [
     tags: ["Agentic Pipelines", "Python", "PyTorch"],
   },
   {
-    company: "Barzan Technology Solutions — Doha Insurance Group",
+    company: "Barzan Technology Solutions (Doha Insurance Group)",
     title: "AI Engineer",
     type: "full-time",
     start: "Nov 2024",
@@ -113,7 +113,7 @@ export const experience: Role[] = [
 export const education: Education[] = [
   {
     degree: "Game Development & Design",
-    institution: "SAE Institute Amman — at Luminus Technical University College (LTUC)",
+    institution: "SAE Institute Amman, at Luminus Technical University College (LTUC)",
     period: "2026",
     location: "Amman, Jordan",
     inProgress: true,
