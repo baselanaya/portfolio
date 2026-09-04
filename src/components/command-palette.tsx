@@ -69,12 +69,33 @@ export default function CommandPalette({ blogPosts, projects }: CommandPalettePr
       action: () => { router.push("/contact"); close(); },
     },
     {
+      id: "about",
+      label: "About Basel",
+      hint: "/about",
+      group: "Navigate",
+      action: () => { router.push("/about"); close(); },
+    },
+    {
+      id: "lab",
+      label: "Open the lab",
+      hint: "/lab",
+      group: "Navigate",
+      action: () => { router.push("/lab"); close(); },
+    },
+    {
+      id: "now",
+      label: "What I'm doing now",
+      hint: "/now",
+      group: "Navigate",
+      action: () => { router.push("/now"); close(); },
+    },
+    {
       id: "copy-email",
       label: "Copy email address",
-      hint: "hello@baselanaya.com",
+      hint: "baselanaya@gmail.com",
       group: "Actions",
       action: () => {
-        navigator.clipboard.writeText("hello@baselanaya.com").catch(() => null);
+        navigator.clipboard.writeText("baselanaya@gmail.com").catch(() => null);
         close();
       },
     },
@@ -97,7 +118,7 @@ export default function CommandPalette({ blogPosts, projects }: CommandPalettePr
       label: p.name,
       hint: p.tagline,
       group: "Projects",
-      action: () => { router.push(`/projects`); close(); },
+      action: () => { router.push(`/work/${p.slug}`); close(); },
     })),
   ];
 
@@ -181,13 +202,12 @@ export default function CommandPalette({ blogPosts, projects }: CommandPalettePr
               onClick={close}
             />
 
-            {/* Palette */}
+            {/* Palette — x: "-50%" is carried by motion so animation can't wipe the centering transform */}
             <motion.div
               className="fixed z-[201] left-1/2 top-[15vh] w-full max-w-xl"
-              style={{ transform: "translateX(-50%)" }}
-              initial={{ opacity: 0, y: -12, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              initial={{ opacity: 0, y: -12, scale: 0.97, x: "-50%" }}
+              animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+              exit={{ opacity: 0, y: -8, scale: 0.97, x: "-50%" }}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
               <div

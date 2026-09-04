@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { compileMDX } from "next-mdx-remote/rsc";
 import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 
 interface PageProps {
@@ -42,6 +43,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     source: post.content,
     options: {
       mdxOptions: {
+        remarkPlugins: [remarkGfm],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rehypePlugins: [[rehypePrettyCode as any, { theme: "github-dark-dimmed" }]],
       },
@@ -49,20 +51,21 @@ export default async function BlogPostPage({ params }: PageProps) {
   });
 
   return (
-    <main className="px-[5vw] pt-28 pb-24">
+    <main className="px-[5vw] pt-36 pb-24">
+      <div className="max-w-3xl mx-auto">
       {/* Back link */}
       <Link
         href="/blog"
-        className="font-mono text-muted hover:text-amber transition-colors duration-150 inline-block mb-12"
+        className="font-mono text-muted hover:text-signal transition-colors duration-150 inline-block mb-12"
         style={{ fontSize: "12px", letterSpacing: "0.1em" }}
       >
         ← back to writing
       </Link>
 
-      <article className="max-w-[680px]">
+      <article>
         {/* Meta */}
         <div
-          className="font-mono flex items-center gap-3 mb-6"
+          className="font-mono flex items-center gap-3 mb-5"
           style={{ fontSize: "11px", color: "var(--color-muted)" }}
         >
           <span>{formatDate(post.date)}</span>
@@ -72,8 +75,8 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         {/* Title */}
         <h1
-          className="font-pixel tracking-tight leading-tight mb-10"
-          style={{ fontSize: "clamp(32px, 4vw, 48px)", color: "var(--color-text)" }}
+          className="font-display font-semibold tracking-tight leading-[1.08] mb-8"
+          style={{ fontSize: "clamp(34px, 5vw, 56px)", color: "var(--color-text)" }}
         >
           {post.title}
         </h1>
@@ -83,17 +86,17 @@ export default async function BlogPostPage({ params }: PageProps) {
           {post.tags.map((tag) => (
             <span
               key={tag}
-              className="font-mono border border-border px-2 py-0.5"
-              style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.1em" }}
+              className="font-mono border border-border rounded-full px-2.5 py-1"
+              style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.1em" }}
             >
-              {tag}
+              {tag.toLowerCase()}
             </span>
           ))}
         </div>
 
         {/* Body */}
         <div
-          className="prose prose-invert max-w-none"
+          className="prose max-w-none"
           style={
             {
               "--tw-prose-body": "var(--color-muted)",
@@ -113,6 +116,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           {content}
         </div>
       </article>
+      </div>
     </main>
   );
 }

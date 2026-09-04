@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# personal file with PII (phone) — keep local, never publish
+/src/content/profile.md

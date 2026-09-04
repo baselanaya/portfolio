@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import type { BlogPost } from "@/lib/blog";
-import TagChip from "@/components/tag-chip";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -32,7 +31,6 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
   // j/k keyboard navigation
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      // Don't hijack when typing in an input
       if (
         document.activeElement instanceof HTMLInputElement ||
         document.activeElement instanceof HTMLTextAreaElement
@@ -67,9 +65,16 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
     setCursor(null);
   }, [activeTag]);
 
+  const chip = (active: boolean) =>
+    `font-mono rounded-full px-3 py-1.5 border transition-colors duration-150 ${
+      active
+        ? "bg-[var(--color-text)] text-[var(--color-bg)] border-[var(--color-text)]"
+        : "border-border text-muted hover:border-[rgba(22,21,15,0.35)]"
+    }`;
+
   return (
     <div>
-      {/* Keyboard hint — hidden on touch devices */}
+      {/* Keyboard hint */}
       <p
         className="hidden md:block font-mono mb-6"
         style={{ fontSize: "10px", color: "var(--color-amber-dim)", letterSpacing: "0.12em" }}
@@ -82,18 +87,17 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
 
       {/* Tag filter */}
       <div className="flex flex-wrap gap-2 mb-12">
-        <TagChip
-          tag="all"
-          active={activeTag === null}
-          onClick={() => setActiveTag(null)}
-        />
+        <button className={chip(activeTag === null)} onClick={() => setActiveTag(null)}>
+          all
+        </button>
         {allTags.map((tag) => (
-          <TagChip
+          <button
             key={tag}
-            tag={tag}
-            active={activeTag === tag}
+            className={chip(activeTag === tag)}
             onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-          />
+          >
+            {tag.toLowerCase()}
+          </button>
         ))}
       </div>
 
@@ -106,71 +110,49 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
             initial={shouldReduce ? undefined : { opacity: 0, y: 16 }}
             whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.06 }}
+            transition={{ duration: 0.4, ease: "easeOut", delay: Math.min(i, 5) * 0.05 }}
             onMouseEnter={() => setCursor(i)}
+            onMouseLeave={() => setCursor((c) => (c === i ? null : c))}
           >
             <Link
               href={`/blog/${post.slug}`}
-              className="group flex flex-col gap-2 py-8 border-b border-border transition-colors duration-150"
-              style={
-                cursor === i
-                  ? { borderColor: "var(--color-amber-dim)", paddingLeft: "0.75rem" }
-                  : {}
-              }
+              className="group grid grid-cols-[7rem_1fr_auto] items-baseline gap-6 py-7 border-b border-border"
             >
-              {/* Meta */}
-              <div className="flex items-center gap-3">
-                <span
-                  className="font-mono"
-                  style={{ fontSize: "11px", color: "var(--color-muted)" }}
-                >
-                  {formatDate(post.date)}
-                </span>
-                <span style={{ color: "var(--color-border)" }} aria-hidden="true">
-                  /
-                </span>
-                <span
-                  className="font-mono"
-                  style={{ fontSize: "11px", color: "var(--color-muted)" }}
-                >
-                  {post.readingTime} min read
-                </span>
-              </div>
-
-              {/* Title */}
-              <h2
-                className="font-pixel tracking-tight leading-tight transition-colors duration-150"
-                style={{
-                  fontSize: "clamp(20px, 5vw, 28px)",
-                  color: "var(--color-text)",
-                }}
+              <span
+                className="font-mono"
+                style={{ fontSize: "11px", color: "var(--color-muted)" }}
               >
-                <span className="group-hover:text-gradient">{post.title}</span>
-              </h2>
+                {formatDate(post.date)}
+              </span>
 
-              {/* Summary */}
-              <p
-                className="font-sans"
-                style={{ fontSize: "14px", color: "var(--color-muted)", lineHeight: 1.7 }}
+              <span className="flex flex-col gap-1.5 min-w-0">
+                <span
+                  className="font-display font-medium tracking-tight transition-colors duration-150 group-hover:text-signal"
+                  style={{ fontSize: "20px" }}
+                >
+                  {post.title}
+                </span>
+                <span
+                  className="truncate"
+                  style={{ fontSize: "14px", color: "var(--color-muted)" }}
+                >
+                  {post.summary}
+                </span>
+              </span>
+
+              <span
+                aria-hidden="true"
+                className="justify-self-end transition-transform duration-200 group-hover:translate-x-1"
+                style={{ color: cursor === i ? "var(--color-signal)" : "var(--color-muted)" }}
               >
-                {post.summary}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mt-1">
-                {post.tags.map((tag) => (
-                  <TagChip key={tag} tag={tag} />
-                ))}
-              </div>
+                →
+              </span>
             </Link>
           </motion.div>
         ))}
 
         {filtered.length === 0 && (
-          <p
-            className="font-mono py-8"
-            style={{ fontSize: "13px", color: "var(--color-muted)" }}
-          >
+          <p className="font-mono py-8" style={{ fontSize: "13px", color: "var(--color-muted)" }}>
             No posts tagged &quot;{activeTag}&quot;.
           </p>
         )}

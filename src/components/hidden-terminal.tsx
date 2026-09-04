@@ -28,7 +28,7 @@ const COMMANDS: Record<string, string | ((args: string) => string)> = {
   "cat skills":
     "Languages  : Rust, Python, TypeScript\nML / AI    : PyTorch, SGLang, Transformers, LLM Fine-tuning\nSystems    : Hypervisors, Kernel-level Security, DuckDB\nWeb        : Next.js, React, Tailwind\nInfra      : Linux, Docker, Hugging Face",
   "cat contact":
-    "Email   : hello@baselanaya.com\nGitHub  : github.com/baselanaya\nHF      : huggingface.co/baselanaya\nLocation: Amman, Jordan",
+    "Email   : baselanaya@gmail.com\nGitHub  : github.com/baselanaya\nHF      : huggingface.co/baselanaya\nLocation: Amman, Jordan",
   "ls projects":
     "drwxr-xr-x  kernex     Zero-trust hypervisor for AI agents (Rust)\ndrwxr-xr-x  mercer     Open-source Text-to-SQL for messy schemas\ndrwxr-xr-x  cynosure   Local autonomous perpetual swap trading\ndrwxr-xr-x  encleare   Mobile-first AI personal finance PWA\n-rw-r--r--  valerie    500M parameter visual speech recognition [archived]",
   "ls posts":
@@ -156,13 +156,12 @@ export default function HiddenTerminal() {
             onClick={close}
           />
 
-          {/* Terminal window */}
+          {/* Terminal window — x: "-50%" is carried by motion so animation can't wipe the centering transform */}
           <motion.div
             className="fixed z-[201] bottom-[5vh] left-1/2 w-full max-w-2xl"
-            style={{ transform: "translateX(-50%)" }}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 24, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 16, x: "-50%" }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div
@@ -172,7 +171,7 @@ export default function HiddenTerminal() {
               {/* Title bar */}
               <div
                 className="flex items-center gap-2 px-4 py-2 border-b border-border"
-                style={{ backgroundColor: "var(--color-surface)" }}
+                style={{ backgroundColor: "#1B1A14" }}
               >
                 <span
                   className="w-2.5 h-2.5 rounded-full"
@@ -227,7 +226,7 @@ export default function HiddenTerminal() {
               {/* Input row */}
               <div
                 className="flex items-center gap-2 px-4 py-2 border-t border-border"
-                style={{ backgroundColor: "var(--color-surface)" }}
+                style={{ backgroundColor: "#1B1A14" }}
               >
                 <span
                   className="font-mono shrink-0"

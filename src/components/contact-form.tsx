@@ -13,140 +13,129 @@ export default function ContactForm() {
     setPending(true);
     setResult(null);
 
-    const formData = new FormData(e.currentTarget);
-    const res = await sendMessage(formData);
-    setResult(res);
-    setPending(false);
-
-    if (res.success) formRef.current?.reset();
+    try {
+      const res = await sendMessage(new FormData(e.currentTarget));
+      setResult(res);
+      if (res.success) formRef.current?.reset();
+    } catch {
+      setResult({ success: false, error: "send_failed" });
+    } finally {
+      setPending(false);
+    }
   }
 
-  const inputStyle: React.CSSProperties = {
-    backgroundColor: "var(--color-surface)",
-    border: "1px solid var(--color-border)",
-    color: "var(--color-text)",
-    fontFamily: "var(--font-sans)",
-    fontSize: "14px",
-    padding: "0.75rem 1rem",
-    outline: "none",
-    width: "100%",
-    transition: "border-color 0.15s ease",
-  };
+  const fieldClass =
+    "w-full bg-surface border border-border focus:border-amber outline-none text-text font-sans text-sm px-4 py-3 transition-colors duration-150";
+
+  const labelClass =
+    "font-mono text-[11px] text-muted tracking-[0.12em] uppercase";
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="name"
-          className="font-mono"
-          style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.12em" }}
-        >
-          NAME
+        <label htmlFor="name" className={labelClass}>
+          Name
         </label>
         <input
           id="name"
           name="name"
           type="text"
           required
+          maxLength={100}
           placeholder="Your name"
-          style={inputStyle}
-          onFocus={(e) =>
-            (e.currentTarget.style.borderColor = "var(--color-amber)")
-          }
-          onBlur={(e) =>
-            (e.currentTarget.style.borderColor = "var(--color-border)")
-          }
+          className={fieldClass}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="message"
-          className="font-mono"
-          style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.12em" }}
-        >
-          MESSAGE
+        <label htmlFor="email" className={labelClass}>
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          placeholder="you@example.com"
+          className={fieldClass}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="message" className={labelClass}>
+          Message
         </label>
         <textarea
           id="message"
           name="message"
           required
+          maxLength={5000}
           rows={6}
           placeholder="What are you building?"
-          style={{ ...inputStyle, resize: "vertical", lineHeight: "1.6" }}
-          onFocus={(e) =>
-            (e.currentTarget.style.borderColor = "var(--color-amber)")
-          }
-          onBlur={(e) =>
-            (e.currentTarget.style.borderColor = "var(--color-border)")
-          }
+          className={`${fieldClass} resize-y leading-relaxed`}
         />
       </div>
+
+      {/* Honeypot — hidden from humans, catches bots */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+      />
 
       <button
         type="submit"
         disabled={pending}
-        className="font-mono border px-8 py-3 transition-colors duration-150 self-start"
-        style={{
-          fontSize: "13px",
-          letterSpacing: "0.15em",
-          borderColor: "var(--color-amber)",
-          color: pending ? "var(--color-muted)" : "var(--color-amber)",
-          backgroundColor: "transparent",
-          cursor: pending ? "not-allowed" : "pointer",
-        }}
-        onMouseEnter={(e) => {
-          if (!pending) {
-            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              "var(--color-amber)";
-            (e.currentTarget as HTMLButtonElement).style.color = "#0A0806";
-          }
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            "transparent";
-          (e.currentTarget as HTMLButtonElement).style.color = pending
-            ? "var(--color-muted)"
-            : "var(--color-amber)";
-        }}
+        className="btn-solid self-start disabled:opacity-50"
       >
         {pending ? "> sending..." : "> send message"}
       </button>
 
       {/* Result feedback */}
       {result?.success && (
-        <p
-          className="font-mono"
-          style={{ fontSize: "12px", color: "var(--color-amber)" }}
-        >
+        <p className="font-mono text-[12px] text-amber">
           Message sent. I&apos;ll be in touch.
         </p>
       )}
       {result?.fallback && (
-        <p
-          className="font-mono"
-          style={{ fontSize: "12px", color: "var(--color-muted)" }}
-        >
+        <p className="font-mono text-[12px] text-muted">
           Email me directly:{" "}
           <a
-            href="mailto:basel@maximlabs.io"
-            style={{ color: "var(--color-amber)" }}
+            href="mailto:baselanaya@gmail.com"
+            className="text-amber hover:text-amber-dim transition-colors duration-150"
           >
-            basel@maximlabs.io
+            baselanaya@gmail.com
           </a>
         </p>
       )}
-      {result?.error && (
-        <p
-          className="font-mono"
-          style={{ fontSize: "12px", color: "var(--color-terra)" }}
-        >
-          Something went wrong. Try emailing{" "}
+      {result?.error === "invalid" && (
+        <p className="font-mono text-[12px] text-terra">
+          Please check your name, email, and message, then try again.
+        </p>
+      )}
+      {result?.error === "rate_limited" && (
+        <p className="font-mono text-[12px] text-terra">
+          Too many messages from your network — try again later, or email me
+          directly:{" "}
           <a
-            href="mailto:basel@maximlabs.io"
-            style={{ color: "var(--color-amber)" }}
+            href="mailto:baselanaya@gmail.com"
+            className="text-amber hover:text-amber-dim transition-colors duration-150"
           >
-            basel@maximlabs.io
+            baselanaya@gmail.com
+          </a>
+        </p>
+      )}
+      {result?.error === "send_failed" && (
+        <p className="font-mono text-[12px] text-terra">
+          Something went wrong sending your message. Try emailing{" "}
+          <a
+            href="mailto:baselanaya@gmail.com"
+            className="text-amber hover:text-amber-dim transition-colors duration-150"
+          >
+            baselanaya@gmail.com
           </a>
         </p>
       )}

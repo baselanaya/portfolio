@@ -3,68 +3,131 @@
 
 @theme {
   /* Fonts */
-  --font-sans:         var(--font-geist-sans);
-  --font-mono:         var(--font-geist-mono);
-  --font-pixel:        var(--font-geist-pixel-square);
-  --font-pixel-grid:   var(--font-geist-pixel-grid);
-  --font-pixel-ghost:  var(--font-geist-pixel-line);
+  --font-sans:    var(--font-instrument);
+  --font-display: var(--font-bricolage);
+  --font-mono:    var(--font-geist-mono);
+  /* Legacy utility names now route to the display face (pixel faces retired) */
+  --font-pixel:      var(--font-display);
+  --font-pixel-grid: var(--font-display);
+  --font-pixel-ghost: var(--font-display);
 
-  /* Brand Colors */
-  --color-bg:          #0A0806;
-  --color-surface:     #12100D;
-  --color-surface-2:   #1A1610;
-  --color-border:      #2A2218;
-  --color-border-glow: rgba(245, 158, 11, 0.4);
-  --color-amber:       #F59E0B;
-  --color-terra:       #C2410C;
-  --color-amber-dim:   #92400E;
-  --color-text:        #F5F0E8;
-  --color-muted:       #8B7D6B;
-  --color-ghost:       rgba(245, 240, 232, 0.04);
+  /* Palette — "paper & ink & signal" */
+  --color-bg:          #FAFAF7;  /* paper — page surface */
+  --color-surface:     #FFFFFF;  /* raised card surface */
+  --color-surface-2:   #F1EFE9;  /* recessed surface / chips */
+  --color-border:      #E3E1D8;  /* hairline rules */
+  --color-border-glow: rgba(43, 92, 255, 0.35);
+  --color-signal:      #2B5CFF;  /* electric cobalt — the accent */
+  --color-amber:       #2B5CFF;  /* legacy name, same signal */
+  --color-amber-dim:   #1D3FBF;  /* dim cobalt for labels (AA on paper) */
+  --color-terra:       #DC2626;
+  --color-text:        #16150F;  /* ink */
+  --color-muted:       #57564F;  /* graphite body text */
+  --color-ghost:       rgba(22, 21, 15, 0.05);
+
+  /* Dark islands — terminal sections on the paper surface */
+  --color-terminal:    #12110D;
+  --color-terminal-2:  #1B1A14;
+  --color-terminal-fg: #F5F0E8;
+  --color-terminal-muted: #A39B8B;
+  --color-live:        #16A34A;  /* only ever marks real, live data */
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #F59E0B 0%, #C2410C 100%);
-  --gradient-text:  linear-gradient(90deg, #F59E0B 0%, #E96C27 50%, #C2410C 100%);
+  --gradient-brand: linear-gradient(135deg, #2B5CFF 0%, #00B4D8 100%);
+  --gradient-text:  linear-gradient(90deg, #2B5CFF 0%, #1479E0 55%, #00B4D8 100%);
 }
 
-/* Base reset */
-*, *::before, *::after { box-sizing: border-box; }
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
 
-html {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Heading reset — prevents browser defaults from overriding display sizes */
+  h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
+    padding: 0;
+  }
 }
 
-/* Noise texture overlay */
+/* This build emits preflight's heading reset unlayered, so it beats the
+   typography plugin's layered heading sizes. Re-assert the prose heading
+   hierarchy here — .prose h2 (0,1,1) out-specifies preflight's h2 (0,0,1).
+   Values mirror @tailwindcss/typography defaults. */
+.prose h1 { font-size: 2.25em; font-weight: 700; line-height: 1.111; margin-top: 0; margin-bottom: 0.889em; }
+.prose h2 { font-size: 1.5em;  font-weight: 700; line-height: 1.333; margin-top: 2em;  margin-bottom: 1em; }
+.prose h3 { font-size: 1.25em; font-weight: 700; line-height: 1.6;   margin-top: 1.6em; margin-bottom: 0.6em; }
+.prose h4 { font-size: 1em;    font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
+
+/* Keyboard focus — signal ring, visible on paper and on dark islands */
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+/* Film grain — barely-there texture so large paper areas don't feel sterile */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.028;
+  opacity: 0.016;
   pointer-events: none;
   z-index: 9999;
 }
 
-/* Heading reset — prevents browser defaults from overriding pixel font sizes */
-h1, h2, h3, h4, h5, h6 {
-  font-size: inherit;
-  font-weight: inherit;
-  margin: 0;
-  padding: 0;
+/* Engineering paper — a structural grid present across the whole page.
+   The cursor is a two-ring spotlight (vars --mx/--my, set by MouseSpotlight):
+   a bright cobalt core where the grid lights up, then a soft tint. */
+.page-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(240px circle at var(--mx, -600px) var(--my, -600px), rgba(43, 92, 255, 0.16), transparent 70%),
+    radial-gradient(620px circle at var(--mx, -600px) var(--my, -600px), rgba(43, 92, 255, 0.07), transparent 75%),
+    linear-gradient(to right, rgba(22, 21, 15, 0.065) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(22, 21, 15, 0.065) 1px, transparent 1px),
+    linear-gradient(to right, rgba(22, 21, 15, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(22, 21, 15, 0.12) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px, 140px 140px, 140px 140px;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 78%, rgba(0, 0, 0, 0.35) 115%);
+  mask-image: linear-gradient(to bottom, black 0%, black 78%, rgba(0, 0, 0, 0.35) 115%);
 }
 
-/* Font utilities — registered as @utility so Tailwind variants work (hover:, group-hover:, etc.) */
+/* Dark island — scopes the terminal palette to a section (hero instrument,
+   code panels, stats strips, 404). Descendants using var(--color-*) flip. */
+.theme-dark {
+  --color-bg:          var(--color-terminal);
+  --color-surface:     var(--color-terminal-2);
+  --color-surface-2:   #24221B;
+  --color-border:      #35322A;
+  --color-text:        var(--color-terminal-fg);
+  --color-muted:       var(--color-terminal-muted);
+  --color-ghost:       rgba(245, 240, 232, 0.04);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Font utilities — legacy names kept so existing components restyle in place */
+@utility font-display {
+  font-family: var(--font-display);
+}
 @utility font-pixel {
-  font-family: var(--font-pixel);
+  font-family: var(--font-display);
 }
 @utility font-pixel-grid {
-  font-family: var(--font-pixel-grid);
+  font-family: var(--font-display);
 }
 @utility font-pixel-ghost {
-  font-family: var(--font-pixel-ghost);
+  font-family: var(--font-display);
 }
 
 /* Gradient text — registered as @utility so group-hover:text-gradient works */
@@ -75,19 +138,82 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
 }
 
-/* Amber glow border */
+
+/* Glass — frosted surfaces for the hero, nav, and demo frames.
+   Reads as glass only when color sits behind it (see HeroOrbs). */
+.glass {
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  backdrop-filter: blur(28px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 24px 60px -28px rgba(22, 21, 15, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.glass-soft {
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 36px -20px rgba(22, 21, 15, 0.22);
+}
+
+/* Buttons — pill pair used across the redesign */
+.btn-solid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  border: 1px solid var(--color-text);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+.btn-solid:hover {
+  background-color: #33312A;
+  border-color: #33312A;
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+.btn-ghost:hover {
+  border-color: var(--color-text);
+}
+.btn-solid:disabled, .btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ink glow border — project cards */
 .glow-border {
   border: 1px solid var(--color-border);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .glow-border:hover {
-  border-color: var(--color-amber);
+  border-color: rgba(22, 21, 15, 0.35);
   box-shadow:
-    0 0 0 1px var(--color-border-glow),
-    0 0 20px rgba(245, 158, 11, 0.08);
+    0 0 0 1px rgba(43, 92, 255, 0.2),
+    0 12px 32px -16px rgba(22, 21, 15, 0.25);
 }
 
-/* Scanline effect — apply to hero with position:relative */
+/* Scanline effect — apply to hero with position:relative (dark islands) */
 .scanlines::after {
   content: "";
   position: absolute;
@@ -102,14 +228,6 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
-/* Pixel grid background pattern */
-.pixel-grid-bg {
-  background-image:
-    linear-gradient(var(--color-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
 /* Marquee animation */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -122,11 +240,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 .animate-marquee:hover { animation-play-state: paused; }
 
-/* Shiki / rehype-pretty-code code blocks */
+/* Respect reduced motion for ambient CSS animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
+}
+
+/* Shiki / rehype-pretty-code code blocks — dark island by default */
 [data-rehype-pretty-code-figure] pre {
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-border);
-  border-radius: 2px;
+  background: var(--color-terminal) !important;
+  border: 1px solid #35322A;
+  border-radius: 12px;
   padding: 1.25rem 1.5rem;
   overflow-x: auto;
   font-family: var(--font-mono);
@@ -136,20 +259,42 @@ h1, h2, h3, h4, h5, h6 {
 [data-rehype-pretty-code-figure] code {
   background: transparent !important;
   font-family: var(--font-mono);
+  color: var(--color-terminal-fg);
 }
 [data-highlighted-line] {
-  background: rgba(245, 158, 11, 0.06);
-  border-left: 2px solid var(--color-amber);
+  background: rgba(43, 92, 255, 0.1);
+  border-left: 2px solid var(--color-signal);
   padding-left: calc(1.5rem - 2px);
   margin-left: -1.5rem;
 }
-[data-rehype-pretty-code-figure] [data-language]::before {
+[data-rehype-pretty-code-figure] pre[data-language]::before {
   content: attr(data-language);
   display: block;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--color-amber-dim);
+  color: #1D3FBF;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 0.75rem;
+}
+
+/* Prose tables — bordered, hairline, paper-friendly */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.prose th {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-text);
+}
+.prose td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
 }

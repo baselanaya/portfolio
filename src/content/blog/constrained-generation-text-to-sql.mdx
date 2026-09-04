@@ -1,0 +1,29 @@
+---
+title: "Constrained Generation: Making Hallucinated SQL Structurally Impossible"
+date: "2026-08-25"
+summary: "The most reliable fix for Text-to-SQL hallucination isn't a better prompt — it's making wrong answers unrepresentable."
+tags: ["LLM", "Text-to-SQL", "Inference"]
+readingTime: 6
+---
+
+Hallucinated identifiers are the classic Text-to-SQL failure: the model invents a plausible table name, the query runs, and you get confidently wrong numbers. Prompt engineering ("only use these tables!") reduces it. It doesn't eliminate it.
+
+The elimination move is **constrained generation** — restricting the decoder's output space so anything outside the real schema is unrepresentable. With SGLang-style structured output and grammar constraints, the decoder can only emit strings from the real schema:
+
+```python
+@sgl.function
+def generate_sql(s, schema_context: str, question: str):
+    s += sgl.system("You are a SQL expert. Only use tables and columns from the schema.")
+    s += sgl.user(f"Schema:\n{schema_context}\n\nQuestion: {question}")
+    s += sgl.assistant(sgl.gen("sql", max_tokens=512, stop=["```"]))
+```
+
+Three techniques stack well:
+
+1. **Grammar/regex constraints on identifiers** — the decoder can only emit strings from the real schema's symbol table.
+2. **Post-hoc validation against the live schema** — parse the generated SQL, walk its identifiers, reject anything unknown *before* execution.
+3. **Schema enrichment as the vocabulary source** — inferred column semantics (is `flg_del` a soft-delete flag?) mean the constraint set is small enough to keep prompts tight.
+
+The deep insight: a constraint changes the failure mode from "wrong answer" to "no answer," which is the only honest way to fail.
+
+I used exactly these techniques in **Mercer**, my open-source Text-to-SQL engine for hostile real-world schemas — the case study walks the full pipeline with a working simulation of the stages: **check it out at [/work/mercer](/work/mercer)**. The same discipline now runs against nine governed Oracle views in production at CoreReportsV2.

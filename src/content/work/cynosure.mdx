@@ -1,0 +1,42 @@
+## The problem
+
+Trading systems usually mean cloud LLM calls, data leaving the machine, and a "strategy" that's really just the model improvising. For perpetual swaps on OKX I wanted the opposite: a system that runs 24/7 **fully locally** — no cloud dependency — and, more importantly, one where **the LLM is a synthesizer, not a reasoner**. All quantitative work happens in deterministic Python; the model's job is to read a brief and write a thesis.
+
+The hardware constraint that shapes everything: an RTX 4070, 8GB VRAM, running alongside everything else.
+
+## The approach
+
+Every 15 minutes, per ticker (crypto majors, gold/silver, equity index perps), an expert pipeline compresses raw market data into a **~500-token MarketBrief**:
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  EXPERT PIPELINE (pure python, deterministic)               │
+│  technicals  : EMA9/20/50 · RSI · MACD · bollinger · ATR    │
+│  flow        : OFI / VPIN · vwap deviation · toxicity       │
+│  forecaster  : timesfm 2.5 (200M) · ±0.30% threshold        │
+│  orderbook   : 20-level L2 · imbalance · whale walls        │
+│  regime      : fear & greed · btc regime · 24h news         │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+        qwen3.5:4b via ollama — synthesizer, /nothink, temp 0.1
+                           ▼
+        DETERMINISTIC RISK ENGINE — the llm has no vote here
+                           ▼
+                   okx order · sqlite journal
+```
+
+- **Experts over raw candles.** The LLM never sees candle arrays — it sees the brief. Hallucinated signal counts get replaced with Python-computed values before risk gates run.
+- **Deterministic risk engine.** Daily loss limits, circuit breakers, margin guard, correlation check (≥0.85), an EV gate (≥0.5%), half-Kelly sizing, ATR-adaptive OCO stops. The README line holds in code: *the LLM has no role in risk decisions.*
+- **Persistence gates.** A BUY is blocked after a single-cycle bullish shift ("one cycle is noise"); SELLs after entry are left to OCO.
+- **Devil's advocate.** Borderline BUYs (confidence 0.65–0.78) trigger a second LLM call that can return ABORT or REDUCE_SIZE.
+
+## Serving on a budget
+
+Qwen3.5-4B runs through Ollama with thinking disabled (`/nothink` + `think=false`) at temperature 0.1 — 5–8 seconds per call on the 4070, a full 15-ticker cycle in about 2 minutes. TimesFM 2.5 (200M) sits alongside for zero-shot directional forecasts. A custom MCP server wraps the OKX API with 11 tools.
+
+## Results and what I learned
+
+- **"LLM as synthesizer" beats "LLM as reasoner"** in domains with rich deterministic pre-processing: the model's failure modes (invented counts, confident nonsense) get filtered before they can matter.
+- Deterministic risk gates are non-negotiable: every check that matters is plain Python with no model in the loop.
+- Local-only is a feature, not a compromise — no cloud latency in a 15-minute loop, and market data never leaves the network it belongs to.
+- Paper mode for weeks, always. The system ships with disclaimers in its config.

@@ -36,10 +36,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               width: "10px",
               height: "10px",
               borderRadius: "50%",
-              backgroundColor: "#F59E0B",
+              backgroundColor: "#2B5CFF",
             }}
           />
-          <span style={{ color: "#92400E", fontSize: "14px", letterSpacing: "0.2em" }}>
+          <span style={{ color: "#1D3FBF", fontSize: "14px", letterSpacing: "0.2em" }}>
             BASEL ANAYA — AI ENGINEER
           </span>
         </div>
@@ -78,7 +78,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           <div
             style={{
               fontSize: "13px",
-              color: "#F59E0B",
+              color: "#2B5CFF",
               letterSpacing: "0.1em",
             }}
           >
@@ -94,7 +94,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             left: 0,
             right: 0,
             height: "3px",
-            background: "linear-gradient(90deg, #F59E0B 0%, #C2410C 100%)",
+            background: "linear-gradient(90deg, #2B5CFF 0%, #0091D5 100%)",
           }}
         />
       </div>

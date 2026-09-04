@@ -1,0 +1,34 @@
+## The problem
+
+Medical questions don't live in a model's weights. Clinical knowledge updates constantly, spans specialties, and punishes hallucination harder than any other domain — a confident wrong answer about a diagnosis is worse than no answer. Off-the-shelf vision-language models know what an image looks like, but not what the literature says about it.
+
+MedFormer set out to combine the two: a biomedical vision-language model grounded by retrieval, evaluated honestly against medical benchmarks.
+
+## The approach
+
+The system pairs a vision-language backbone with a medical RAG layer:
+
+```text
+medical image + question ──► Idefics2 (vision-language encoder)
+                                    │
+medical literature ──► retrieval ──►┤
+                                    ▼
+                    LLaMA-3.1 / MedLLaMA-3.1 (reasoning)
+                                    │
+                                    ▼
+                          answer + grounded context
+```
+
+- **Vision-language front end:** Idefics2 encodes the medical image and the question into a joint representation — the model sees the case, not just reads it.
+- **Medical RAG:** retrieved passages from biomedical sources are injected into the prompt, so answers cite knowledge newer than any training cutoff.
+- **Domain-tuned reasoning:** LLaMA-3.1 handles general reasoning; MedLLaMA-3.1 — a LLaMA variant fine-tuned on medical text — handles the clinical register.
+
+## Results
+
+Across medical benchmarks, MedFormer reached **64.4% average accuracy** — meaningful for a 2024 student-built system competing against domain-specific giants, and an honest number: it also maps exactly where retrieval helps (factoidal clinical questions) and where it doesn't (multi-hop visual reasoning).
+
+## What I learned
+
+- Retrieval is a accuracy multiplier for bounded domains, but the retrieval corpus quality becomes the ceiling — garbage in, cited garbage out.
+- Domain-tuned language models (MedLLaMA-3.1) change the *tone* of answers before they change the correctness; evaluation has to separate the two.
+- Benchmarking medical AI demands humility: 64.4% is a research milestone, nowhere near a clinical one.

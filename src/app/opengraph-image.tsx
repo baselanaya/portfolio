@@ -20,7 +20,7 @@ export default function Image() {
           gap: "24px",
         }}
       >
-        <div style={{ color: "#92400E", fontSize: "13px", letterSpacing: "0.2em" }}>
+        <div style={{ color: "#1D3FBF", fontSize: "13px", letterSpacing: "0.2em" }}>
           // MAXIMLABS — AI INFRASTRUCTURE
         </div>
 
@@ -47,7 +47,7 @@ export default function Image() {
             left: 0,
             right: 0,
             height: "3px",
-            background: "linear-gradient(90deg, #F59E0B 0%, #C2410C 100%)",
+            background: "linear-gradient(90deg, #2B5CFF 0%, #0091D5 100%)",
           }}
         />
       </div>

@@ -1,0 +1,40 @@
+---
+title: "Seccomp, Namespaces, and the Case for Kernel-Level Agent Sandboxes"
+date: "2026-07-15"
+summary: "Prompt-level guardrails are suggestions. Linux namespaces and seccomp BPF are physics — here's the mechanism behind kernel-level agent sandboxing."
+tags: ["Security", "Rust", "AI Agents", "Systems"]
+readingTime: 7
+---
+
+An AI agent that can run shell commands is a prompt away from doing something you didn't intend. Most guardrails live at the prompt layer — instructions, policies, classifiers. Those are *suggestions the model can be talked out of*. The kernel doesn't negotiate.
+
+The two Linux primitives that make real sandboxes:
+
+**Namespaces** give the agent its own view of the system — its own PID tree, mount table, network stack. One syscall family, no containers required:
+
+```rust
+unshare(
+    CloneFlags::CLONE_NEWUSER
+        | CloneFlags::CLONE_NEWNS      // mount namespace
+        | CloneFlags::CLONE_NEWNET     // no network unless you say so
+        | CloneFlags::CLONE_NEWPID,
+)?;
+```
+
+**Seccomp BPF** filters syscalls themselves. The agent's process gets a BPF program; anything not on the allowlist is denied by the kernel before it touches a driver:
+
+```rust
+// deny network syscalls the task never declared
+seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EPERM), SCMP_SYS(connect), &mut scmp_arg_compare!)?;
+```
+
+The design rule that makes this agent-shaped rather than container-shaped: **capabilities are declared per task**. Network access, filesystem writes, process spawning — each is opt-in at task definition time. An agent that tries something undeclared gets `EPERM` from the kernel, and the attempt lands in an append-only audit log:
+
+```bash
+kernex audit --session abc123 --filter network
+# 2026-07-14T09:12:04Z  BLOCKED  connect(8, 10.0.0.1:443)  reason=undeclared_network
+```
+
+That `BLOCKED` line is the entire value proposition. Prompt guardrails can't show you the attempt — the kernel can.
+
+I used exactly this technique in **Kernex**, my zero-trust hypervisor for AI agents — the case study includes an interactive sandbox simulation where you declare capabilities and watch the kernel allow or block agent actions: **check it out at [/work/kernex](/work/kernex)**.

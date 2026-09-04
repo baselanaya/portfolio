@@ -1,0 +1,43 @@
+---
+title: "The 8GB VRAM Budgeting Playbook: Two Models, One GPU"
+date: "2026-05-20"
+summary: "Quantization tables, load order, KV-cache budgeting, and the runtime choices that decide whether your inference box survives the week."
+tags: ["Inference", "LLM", "Quantization", "llama.cpp"]
+readingTime: 6
+---
+
+Running production inference on consumer hardware is a budgeting problem disguised as a modeling problem. On an 8GB RTX 4070, here's the playbook I use when a system needs *more than one model* resident at once.
+
+## 1. Pick by the table, not the datasheet
+
+What actually fits at inference time (fine-tuning needs 3–4× more):
+
+| Model | Quant | VRAM |
+|---|---|---|
+| Qwen2.5-Coder-7B | FP8 | ~7.2GB |
+| Qwen3.5-4B | FP16 | ~4.8GB |
+| Llama-3.1-8B | Q4_K_M | ~5.1GB |
+| Arctic-Text2SQL-R1-7B | IQ4_XS + q8_0 KV | ~5.4GB |
+| TimesFM 2.5 200M | FP32 | ~0.6GB |
+
+The rule: the *smallest model that clears your quality bar*, then verify headroom for the resident co-model plus KV-cache growth.
+
+## 2. Pin the small model first
+
+When Cynosure needed reasoning (qwen3.5:4b via Ollama) and forecasting (TimesFM 2.5 200M) simultaneously, load order was everything: the forecaster goes in first and stays pinned, the reasoning model loads around it. Reverse the order and the big model's allocator grabs the headroom — then the trading loop OOMs mid-position. Deterministic load order turns memory from a lottery into a plan.
+
+## 3. Budget the runtime, not just the weights
+
+Weights are half the bill — KV cache and context are the other half:
+
+- **llama.cpp (Mercer):** the TurboQuant profile pairs IQ4_XS weights with a q8_0 KV cache — halving cache bytes at negligible quality cost keeps the working set at ~5.4GB.
+- **Ollama (Cynosure):** capping context (3072 tokens) and disabling chain-of-thought (`/nothink`) cut per-call latency from minutes to 5–8 seconds — and shrank the cache the model needs.
+- On SGLang, the equivalent discipline is `--mem-fraction-static`: stop the server from claiming all free VRAM and starving everything else.
+
+Reserve headroom *before* the first request, or the OOM arrives mid-position.
+
+## 4. Match the runtime to the traffic shape
+
+llama.cpp with an OpenAI-compatible endpoint is the right default for a single-digit-QPS local workload; heavier concurrency is where dedicated serving runtimes earn their keep. Ollama is the fastest path from pull to prototype on the same model family — graduate to the tuned runtime when the prompt is stable.
+
+I used exactly these techniques in **Cynosure**, my fully local autonomous trading system for OKX perpetual swaps — the case study includes a live simulation of the price stream, forecast line, and decision loop: **check it out at [/work/cynosure](/work/cynosure)**. Mercer runs on the same playbook, with Arctic-Text2SQL-R1-7B TurboQuant at [/work/mercer](/work/mercer).

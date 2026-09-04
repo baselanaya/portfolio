@@ -1,7 +1,7 @@
 type Status = "active" | "archived" | "stealth";
 
 const STATUS_STYLES: Record<Status, string> = {
-  active: "text-amber border-amber",
+  active: "text-amber-dim border-amber",
   archived: "text-muted border-border",
   stealth: "text-terra border-terra",
 };

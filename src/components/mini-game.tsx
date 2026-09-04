@@ -1,16 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
-
-// Konami code: ↑↑↓↓←→←→BA
-const KONAMI = [
-  "ArrowUp", "ArrowUp",
-  "ArrowDown", "ArrowDown",
-  "ArrowLeft", "ArrowRight",
-  "ArrowLeft", "ArrowRight",
-  "b", "a",
-];
 
 const CELL = 14;
 const COLS = 26;
@@ -24,11 +15,10 @@ function randCell(): Pt {
   return { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
 }
 
-export default function MiniGame() {
-  const [open, setOpen] = useState(false);
+export default function MiniGame({ open, onClose }: { open: boolean; onClose: () => void }) {
   const canvasRef       = useRef<HTMLCanvasElement>(null);
   const stateRef        = useRef({
-    snake:   [{ x: 13, y: 11 }, { x: 12, y: 11 }, { x: 11, y: 11 }] as Pt[],
+    snake:   [{ x: 7, y: 11 }, { x: 6, y: 11 }, { x: 5, y: 11 }] as Pt[],
     dir:     { x: 1, y: 0 } as Dir,
     nextDir: { x: 1, y: 0 } as Dir,
     food:    randCell() as Pt,
@@ -36,22 +26,6 @@ export default function MiniGame() {
     dead:    false,
   });
   const tickRef  = useRef<ReturnType<typeof setInterval> | null>(null);
-  const konamiRef = useRef<string[]>([]);
-
-  // ── Konami listener ─────────────────────────────────────────────────────────
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const seq = konamiRef.current;
-      seq.push(e.key);
-      if (seq.length > KONAMI.length) seq.shift();
-      if (seq.join(",") === KONAMI.join(",")) {
-        setOpen(true);
-        konamiRef.current = [];
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   // ── Reset game ───────────────────────────────────────────────────────────────
   const reset = useCallback(() => {
@@ -164,7 +138,7 @@ export default function MiniGame() {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       const s = stateRef.current;
-      if (e.key === "Escape") { setOpen(false); return; }
+      if (e.key === "Escape") { onClose(); return; }
       if (e.key === "r" || e.key === "R") {
         reset();
         draw();
@@ -202,7 +176,7 @@ export default function MiniGame() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => setOpen(false)}
+          onClick={onClose}
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}

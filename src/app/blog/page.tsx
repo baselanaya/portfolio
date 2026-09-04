@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SectionHeading from "@/components/section-heading";
+import PageHeader from "@/components/page-header";
 import BlogList from "@/components/blog-list";
 import { getAllPosts, getAllTags } from "@/lib/blog";
 
@@ -13,14 +13,15 @@ export default function BlogPage() {
   const allTags = getAllTags();
 
   return (
-    <main className="px-[5vw] pt-28 pb-24">
-      <SectionHeading
-        as="h1"
-        index="01"
-        title="WRITING"
-        subtitle="Notes on AI infrastructure, systems, and inference"
-      />
-      <BlogList posts={posts} allTags={allTags} />
+    <main className="px-[5vw] pt-36 pb-24">
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          eyebrow="// NOTES FROM THE BENCH"
+          title="Writing"
+          subline="Field notes on AI infrastructure, LLM inference on real hardware, systems programming, and the schemas nobody warns you about."
+        />
+        <BlogList posts={posts} allTags={allTags} />
+      </div>
     </main>
   );
 }

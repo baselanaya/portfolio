@@ -1,0 +1,30 @@
+## The problem
+
+Every "free online converter" has the same business model: you upload your contracts, IDs, medical scans, and family photos to an anonymous ad-riddled server, and hope. And the private alternative has been misery — FFmpeg alone has a 40-page manual, and the matrix of "109 formats × 109 formats" means 11,881 possible conversions nobody wants to write.
+
+Cirax is the answer to both: **don't upload. Convert.** One local tool that routes between the best conversion engines ever written.
+
+## The approach
+
+Cirax doesn't reimplement codecs — it *routes* between them. FFmpeg, libvips, ImageMagick, LibreOffice, Pandoc, Calibre, 7-Zip, qpdf and 50+ more engines sit behind a single CLI:
+
+```bash
+cirax convert report.docx preview.png
+# route: libreoffice → pdftoppm   (lossy)
+```
+
+The interesting part is the **chain router**. When no engine converts A→B directly, a Dijkstra search over the 109-format graph finds multi-hop chains through pivots (PDF, PNG, WAV, JSON…), up to three hops deep — and every route is **ranked by fidelity**, because lossless beats lossy and the tool says so before it runs.
+
+Two more properties do the heavy lifting:
+
+- **58 engines declared in YAML.** Adding a format is a stanza in a registry file, not a pull request into the core.
+- **Every job runs in a bubblewrap jail** — no network, read-only filesystem, writes confined to the workspace. A malicious input file can't do anything Cirax's policy didn't allow.
+
+It also stretches the idea of "conversion": local AI OCR through a ~1.3B-param GLM model via Ollama turns scans into Markdown, Blender goes headless for 3D formats, and Piper does offline text-to-speech.
+
+## Results and what I learned
+
+- `cirax doctor` prints a capability matrix of the machine — the debugging tool that cut support questions to zero.
+- Declaring engines declaratively (YAML) instead of imperatively made the format explosion manageable: breadth without core churn.
+- Fidelity ranking turned a "does it convert?" tool into one people trust with originals — the router prefers lossless paths and *tags* the lossy ones before running.
+- The privacy pitch isn't marketing: sandboxing means even a hostile input file hits a wall.

@@ -39,6 +39,9 @@ export function getAllPosts(): BlogPost[] {
 }
 
 export function getPostBySlug(slug: string): BlogPostWithContent | null {
+  // Slugs are used in a filesystem path — only allow well-formed ones
+  if (!/^[a-z0-9-]+$/.test(slug)) return null;
+
   const filepath = path.join(BLOG_DIR, `${slug}.mdx`);
 
   if (!fs.existsSync(filepath)) return null;

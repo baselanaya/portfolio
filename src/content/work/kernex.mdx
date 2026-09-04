@@ -1,0 +1,57 @@
+## The problem
+
+Autonomous agents are no longer a curiosity — they're running shell commands, reading files, and making network requests on a user's behalf. The security model most people apply to them is implicit trust: *if the agent was invoked by our system, it must be safe.*
+
+That assumption is wrong. A prompted agent can be steered, injected, or simply buggy — and it holds the same keys you do.
+
+Kernex started from a different premise: **every action authorized at the kernel level, every invocation auditable, no agent more capable than its current task requires.**
+
+## The approach
+
+Kernex is a Rust hypervisor with a deliberately minimal surface:
+
+```bash
+kernex init
+kernex run <agent> <task>
+kernex audit
+kernex revoke <session-id>
+kernex status
+```
+
+Five commands — and that's a security property, not an aesthetic choice. A small API surface means fewer attack vectors, easier auditing, and clearer reasoning about what the system can and cannot do.
+
+Each invocation gets a fresh, isolated environment built from Linux namespaces and seccomp filters. Network access, filesystem writes, and process spawning are all opt-in, declared at task definition time:
+
+```rust
+fn isolate_agent() -> Result<()> {
+    unshare(
+        CloneFlags::CLONE_NEWUSER
+            | CloneFlags::CLONE_NEWNS
+            | CloneFlags::CLONE_NEWNET
+            | CloneFlags::CLONE_NEWPID,
+    )?;
+    Ok(())
+}
+```
+
+If the agent tries something it didn't declare, the kernel rejects it — not a prompt, not a policy file. The kernel.
+
+## Audit as a first-class output
+
+Every syscall, file access, and network connection lands in an append-only, queryable audit log:
+
+```bash
+kernex audit --session abc123 --filter network
+# 2025-04-09T14:23:01Z  BLOCKED  connect(8, 10.0.0.1:443)  reason=undeclared_network
+# 2025-04-09T14:23:02Z  ALLOWED  read(/tmp/task-context.json)
+```
+
+That `BLOCKED` line is the whole point. With implicit trust you'd never know an agent tried to phone home. With Kernex, you have it in writing.
+
+## Results and what I learned
+
+- A 5-command CLI covers the entire lifecycle: init, run, audit, revoke, status.
+- Zero-trust moves from a compliance word to an enforcement mechanism — the kernel is the policy engine.
+- Rust was the right call for a security boundary: no garbage-collector pauses in syscall filtering paths, and the type system keeps capability declarations honest.
+
+The next iteration is exploring GPU-passthrough fences, so agents running inference inside a Kernex cell get the same guarantees as everything else.

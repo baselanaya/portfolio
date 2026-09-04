@@ -1,0 +1,59 @@
+## The problem
+
+Every Text-to-SQL benchmark uses clean, normalized schemas: `users`, `orders`, `products`. Tables have sensible names, foreign keys are explicit, columns follow conventions.
+
+Real databases look like this:
+
+```sql
+SELECT * FROM acct_mstr_v2_PROD
+JOIN txn_log_20190312_bkp ON acct_mstr_v2_PROD.acct_id = txn_log_20190312_bkp.a_id
+WHERE txn_log_20190312_bkp.flg_del != 1
+```
+
+`acct_mstr_v2_PROD`. `txn_log_20190312_bkp`. `flg_del`. `a_id`. These names are meaningless to an LLM with no context — and most Text-to-SQL systems fail *silently* here: they generate plausible-looking SQL that returns wrong results.
+
+Mercer exists to handle schemas that don't look like textbooks.
+
+## The approach
+
+Mercer runs a **six-stage agentic pipeline** before an answer ships:
+
+```text
+question ─► 1. entity retrieval ─► 2. schema linking ─► 3. decomposition
+            (bm25+lsh over        (chess-inspired 3-step,   (CoT subproblems,
+             sampled cell values)  fk graph via networkx)   glossary-expanded)
+    ─► 4. candidate generation ─► 5. execute + select ─► 6. taxonomy correction
+        (3 strategies in          (explain pre-flight,    (classify errors:
+         parallel, temps          read-only sandbox,      schema · join · filter
+         0.0 / 0.2 / 0.3)         consistency scoring)    · aggregation · logic)
+```
+
+1. **Entity retrieval** — BM25 + LSH match question tokens against *actual sampled cell values* (`"RETAIL"`, `"CORP"`) and a business glossary, not just column names.
+2. **Schema linking** — a CHESS-inspired 3-step linker: column pre-filter → table selection → final column selection, walking an FK graph.
+3. **Query decomposition** — complex questions split into subproblems with chain-of-thought.
+4. **Candidate generation** — three SQL strategies in parallel at distinct temperatures (direct CoT @ 0.0, divide-and-conquer @ 0.2, plan-execute @ 0.3), prompted in M-Schema format so sample values sit inline next to cryptic columns.
+5. **Execution + selection** — candidates pass an EXPLAIN pre-flight, execute in a read-only sandbox (sqlglot rejects anything that isn't a single SELECT; PostgreSQL goes `READ ONLY` with a 5s timeout and a 100-row cap), and a winner is chosen by consistency scoring.
+6. **Taxonomy correction** — failures are classified by type (schema, join, filter, aggregation, syntax, logic) and repaired.
+
+## The hardest part: reading a bad schema
+
+Enrichment is where the project lives. A column named `flg_del` with sample values `{0, 1, None}` is almost certainly a soft-delete flag — and a 7B model that knows that writes correct `WHERE` clauses. Heuristics first, inference second:
+
+```python
+def infer_column_purpose(col_name: str, samples: list) -> str:
+    # Short names with 0/1 values are likely boolean flags
+    if len(col_name) <= 6 and set(samples).issubset({0, 1, None}):
+        return "boolean flag (likely soft-delete if named like *_del)"
+    ...
+```
+
+## Serving: the TurboQuant profile
+
+Generation runs fully local on llama.cpp with **Arctic-Text2SQL-R1-7B** — a Qwen2.5-Coder-7B-Instruct fine-tune trained with execution-based GRPO on BIRD/Spider — served from GGUF **IQ4_XS weights with q8_0 KV cache** (the "TurboQuant" profile). Working set: roughly **5.4GB on an 8GB RTX 4070**, room to spare for the OS and the schema cache.
+
+## Results and what I learned
+
+- Enrichment beats model size: a well-built context document makes a 7B model outperform larger models on hostile schemas.
+- Constrained execution eliminates the "confidently wrong table" failure mode — sqlglot rejects any non-SELECT AST, so DDL/DML is structurally impossible.
+- Silent failure is the enemy. Mercer validates every query against the live schema and reports *why* a query can't be answered before executing anything.
+- Honest benchmarks age well: the published 74% execution accuracy / 34% exact match on synthetic_text_to_sql is labeled a *previous floor, not the current ceiling* — and window functions went 7/7 while subqueries lagged. Knowing where a system breaks is worth more than a headline number.
