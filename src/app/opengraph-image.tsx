@@ -21,7 +21,7 @@ export default function Image() {
         }}
       >
         <div style={{ color: "#1D3FBF", fontSize: "13px", letterSpacing: "0.2em" }}>
-          // MAXIMLABS — AI INFRASTRUCTURE
+          {"// MAXIMLABS · AI INFRASTRUCTURE"}
         </div>
 
         <div

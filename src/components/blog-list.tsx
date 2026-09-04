@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion } from "motion/react";
 import type { BlogPost } from "@/lib/blog";
 
 interface BlogListProps {
@@ -22,7 +21,6 @@ function formatDate(dateStr: string): string {
 export default function BlogList({ posts, allTags }: BlogListProps) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
-  const shouldReduce = useReducedMotion();
   const router = useRouter();
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -101,16 +99,13 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
         ))}
       </div>
 
-      {/* Post list */}
+      {/* Post list — plain links on purpose: the list must be visible in
+          SSR output (crawlers, print, no-JS), not gated on scroll reveal */}
       <div className="flex flex-col" ref={listRef}>
         {filtered.map((post, i) => (
-          <motion.div
+          <div
             key={post.slug}
             data-blog-item
-            initial={shouldReduce ? undefined : { opacity: 0, y: 16 }}
-            whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.4, ease: "easeOut", delay: Math.min(i, 5) * 0.05 }}
             onMouseEnter={() => setCursor(i)}
             onMouseLeave={() => setCursor((c) => (c === i ? null : c))}
           >
@@ -148,7 +143,7 @@ export default function BlogList({ posts, allTags }: BlogListProps) {
                 →
               </span>
             </Link>
-          </motion.div>
+          </div>
         ))}
 
         {filtered.length === 0 && (

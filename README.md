@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Basel Anaya — Portfolio
 
-## Getting Started
+Personal portfolio of [Basel Anaya](https://baselanaya.com), founder of Maximlabs. AI infrastructure: kernel-level sandboxes for autonomous agents, local LLM inference, and the data pipelines between them.
 
-First, run the development server:
+The site is a static-rendered Next.js app with a paper-and-ink editorial theme, cobalt signal accents, and animated "mechanism diagram" demos — miniature versions of each project's actual mechanics, drawn as SVG and driven by a shared loop clock.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- **Next.js 16** (App Router, static prerendering, Turbopack)
+- **Tailwind CSS v4** + a small token layer in `src/styles/globals.css`
+- **Motion** (`motion/react`) for the demo loops, page transitions, and micro-interactions
+- **MDX** case studies and blog posts (`next-mdx-remote`, `rehype-pretty-code` for Shiki-highlighted code)
+- **Resend** for the contact form
+
+## Structure
+
+```
+src/
+  app/            # routes: /work /experience /blog /about /now /lab /contact
+  components/     # nav, demos/, ascii-cover, field-monitor, ...
+  content/        # MDX case studies (work/) and blog posts (blog/)
+  lib/            # projects, case studies, experience, blog, seo helpers
+  styles/         # globals.css — design tokens + instrument-island styles
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # production build
+npm run start      # serve the production build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Content
 
-## Learn More
+- **Case studies** live in `src/content/work/*.mdx` — one file per project, paired with the project entry in `src/lib/projects.ts` (name, tagline, status, metrics, cover pattern).
+- **Blog posts** live in `src/content/blog/*.mdx` with `title`, `date`, `summary`, `tags`, and `readingTime` frontmatter.
+- `src/content/profile.md` is personal and gitignored on purpose.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Any Node host works (`next build` + `next start`). The contact route needs `RESEND_API_KEY`; analytics load only when `NEXT_PUBLIC_GA_ID` is set.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© 2026 Basel Anaya, Maximlabs. All rights reserved unless a source file states otherwise.
