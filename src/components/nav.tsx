@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
+import {
+  Article,
+  Briefcase,
+  ClockCounterClockwise,
+  Command,
+  EnvelopeSimple,
+  User,
+} from "@phosphor-icons/react";
 
 interface SiteStatus {
   status: string;
@@ -12,23 +21,34 @@ interface SiteStatus {
 
 // The work index lives at /work; /projects redirects there (next.config)
 const NAV_LINKS = [
-  { href: "/work", label: "work" },
-  { href: "/experience", label: "experience" },
-  { href: "/blog", label: "blog" },
-  { href: "/about", label: "about" },
-  { href: "/contact", label: "contact" },
+  { href: "/work", label: "work", Icon: Briefcase },
+  { href: "/experience", label: "experience", Icon: ClockCounterClockwise },
+  { href: "/blog", label: "blog", Icon: Article },
+  { href: "/about", label: "about", Icon: User },
+  { href: "/contact", label: "contact", Icon: EnvelopeSimple },
 ];
 
 export default function Nav() {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
   const [siteStatus, setSiteStatus] = useState<SiteStatus | null>(null);
+  // Dock tucks away while reading (scroll down) and returns on the first
+  // upward flick. Reduced motion keeps it pinned.
+  const [dockHidden, setDockHidden] = useState(false);
+  const { scrollY } = useScroll();
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  useMotionValueEvent(scrollY, "change", (y) => {
+    setScrolled(y > 16);
+    if (reduce || y < 96) {
+      setDockHidden(false);
+      return;
+    }
+    const prev = scrollY.getPrevious() ?? 0;
+    const delta = y - prev;
+    if (delta > 6) setDockHidden(true);
+    else if (delta < -6) setDockHidden(false);
+  });
 
   useEffect(() => {
     fetch("/status.json")
@@ -36,6 +56,12 @@ export default function Nav() {
       .then(setSiteStatus)
       .catch(() => null);
   }, []);
+
+  const openPalette = () => {
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
+    );
+  };
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -100,11 +126,7 @@ export default function Nav() {
             })}
             {/* ⌘K trigger */}
             <button
-              onClick={() => {
-                window.dispatchEvent(
-                  new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
-                );
-              }}
+              onClick={openPalette}
               className="font-mono ml-1 border px-2.5 py-1 rounded-full transition-colors duration-150 hover:border-signal hover:text-signal"
               style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.1em" }}
               aria-label="Open command palette"
@@ -113,54 +135,62 @@ export default function Nav() {
             </button>
           </div>
 
-          {/* Mobile ⌘K (bottom nav carries links) */}
+          {/* Mobile palette trigger (no ⌘ key on a phone — the glyph is the affordance) */}
           <button
-            onClick={() => {
-              window.dispatchEvent(
-                new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
-              );
-            }}
-            className="md:hidden font-mono border border-border px-2.5 py-1 rounded-full"
-            style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.1em" }}
+            onClick={openPalette}
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-full border border-border transition-colors duration-150 hover:border-signal"
+            style={{ color: "var(--color-muted)" }}
             aria-label="Open command palette"
           >
-            ⌘K
+            <Command size={13} weight="bold" />
           </button>
         </nav>
       </header>
 
-      {/* Mobile bottom nav — floating pill island */}
-      <nav
+      {/* Mobile tab dock — thumb-zone island, tucks away while reading */}
+      <motion.nav
         aria-label="Mobile navigation"
-        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 px-2 h-12 rounded-full border border-border"
-        style={{
-          backgroundColor: "rgba(255,255,255,0.68)",
-          backdropFilter: "blur(24px) saturate(1.5)",
-          WebkitBackdropFilter: "blur(24px) saturate(1.5)",
-          borderColor: "rgba(43,92,255,0.4)",
-          boxShadow: "0 10px 30px -12px rgba(43,92,255,0.4), inset 0 1px 0 rgba(255,255,255,0.9)",
-        }}
+        className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md"
+        initial={false}
+        animate={{ y: dockHidden && !reduce ? 96 : 0, opacity: dockHidden && !reduce ? 0.6 : 1 }}
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
       >
-        {NAV_LINKS.map(({ href, label }) => {
-          const active = isActive(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className="font-mono px-3 py-1.5 rounded-full transition-colors duration-150"
-              style={{
-                fontSize: "12px",
-                letterSpacing: "0.04em",
-                color: active ? "var(--color-signal)" : "var(--color-muted)",
-                backgroundColor: active ? "rgba(43,92,255,0.09)" : undefined,
-              }}
-            >
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+        <div
+          className="flex items-stretch rounded-[22px] border border-border"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(24px) saturate(1.5)",
+            WebkitBackdropFilter: "blur(24px) saturate(1.5)",
+            borderColor: "rgba(43,92,255,0.4)",
+            boxShadow: "0 10px 30px -12px rgba(43,92,255,0.4), inset 0 1px 0 rgba(255,255,255,0.9)",
+          }}
+        >
+          {NAV_LINKS.map(({ href, label, Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className="flex-1 flex flex-col items-center justify-center gap-1 pt-2.5 pb-2 rounded-[18px] transition-colors duration-150"
+                style={{
+                  color: active ? "var(--color-signal)" : "var(--color-muted)",
+                  backgroundColor: active ? "rgba(43,92,255,0.09)" : undefined,
+                }}
+              >
+                <Icon size={19} weight={active ? "fill" : "regular"} aria-hidden="true" />
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: "8.5px", letterSpacing: "0.08em" }}
+                >
+                  {label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </motion.nav>
     </>
   );
 }

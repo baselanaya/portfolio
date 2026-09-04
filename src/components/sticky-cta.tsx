@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMotionValueEvent, useScroll } from "motion/react";
 
 // Sticky mobile CTA: appears after the visitor scrolls past the hero,
-// sits above the mobile bottom nav, hidden on desktop.
+// floats above the mobile tab dock, hidden on desktop.
 export default function StickyCta() {
   const [visible, setVisible] = useState(false);
+  const { scrollY } = useScroll();
 
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 480);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  useMotionValueEvent(scrollY, "change", (y) => setVisible(y > 480));
 
   return (
     <div
