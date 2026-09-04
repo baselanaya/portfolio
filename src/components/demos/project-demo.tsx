@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "motion/react";
 import { KernexInterface, MercerInterface, CynosureInterface, MedFormerInterface, CiraxInterface } from "./interfaces";
 
@@ -10,43 +9,31 @@ import { KernexInterface, MercerInterface, CynosureInterface, MedFormerInterface
 const DEMOS: Record<
   string,
   {
-    title: string;
-    note: string;
     caption: string;
     Component: () => React.JSX.Element;
   }
 > = {
   kernex: {
-    title: "KERNEX — ZERO-TRUST SANDBOX",
-    note: "SIMULATED · LANDLOCK + SECCOMP",
     caption:
       "What you're watching: an agent runs inside the sandbox and tries to act. Actions it declared in the policy pass; everything else is blocked by the kernel, paused, and shown to the operator for a decision.",
     Component: KernexInterface,
   },
   mercer: {
-    title: "MERCER — TEXT-TO-SQL PIPELINE",
-    note: "SIMULATED · 6 REAL STAGES",
     caption:
       "What you're watching: Mercer's six-stage pipeline. A plain question goes in, the schema is mapped stage by stage, and validated SQL comes out — it can only reference tables that actually exist.",
     Component: MercerInterface,
   },
   cynosure: {
-    title: "CYNOSURE — TRADING LOOP",
-    note: "SIMULATED FEED · NOT FINANCIAL ADVICE",
     caption:
       "What you're watching: the local trading loop. Prices tick, the forecaster projects direction, the LLM synthesizes a thesis, and deterministic risk gates decide what actually happens.",
     Component: CynosureInterface,
   },
   medformer: {
-    title: "MEDFORMER — BIOMEDICAL VLM + RAG",
-    note: "SIMULATED · REAL PIPELINE",
     caption:
       "What you're watching: how MedFormer answers. A medical image is encoded, relevant literature is retrieved, and the answer is grounded in what was retrieved instead of guessed.",
     Component: MedFormerInterface,
   },
   cirax: {
-    title: "CIRAX — CHAIN ROUTER",
-    note: "SIMULATED · REAL ROUTING LOGIC",
     caption:
       "What you're watching: Cirax's router at work. Pick two formats and it searches the format graph for the best chain of converters, ranked by fidelity, then runs it in a sandbox.",
     Component: CiraxInterface,
@@ -56,23 +43,9 @@ const DEMOS: Record<
 export default function ProjectDemo({ slug }: { slug: string }) {
   const demo = DEMOS[slug];
   if (!demo) return null;
-  const { title, note, caption, Component } = demo;
+  const { caption, Component } = demo;
   return (
     <div className="glass-soft rounded-2xl overflow-hidden my-10">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-white/70 bg-white/40">
-        <span
-          className="font-mono truncate"
-          style={{ fontSize: "10px", color: "var(--color-text)", letterSpacing: "0.15em" }}
-        >
-          {title}
-        </span>
-        <span
-          className="font-mono"
-          style={{ fontSize: "9px", color: "var(--color-muted)", letterSpacing: "0.12em" }}
-        >
-          {note}
-        </span>
-      </div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
