@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import { DARK_BG, DARK_LINE, DARK_PANEL, ToolHeader } from "./interfaces";
 
@@ -126,6 +126,35 @@ function useLoopT(duration: number, ref: React.RefObject<HTMLDivElement | null>)
 
 /* ── SVG primitives ─────────────────────────────────────────────────────── */
 
+/**
+ * Compact-screen boost factors, measured from the screen's rendered width
+ * (not the viewport). At full width both are 1; on a phone the canvas
+ * renders at ~0.58×, so free text grows by kT (up to 1.75×) to stay legible
+ * and boxed elements grow by the gentler kB (up to 1.3×) so they never
+ * collide with the composition.
+ */
+const FlowK = createContext({ kT: 1, kB: 1 });
+const useFlowK = () => useContext(FlowK);
+
+/** Measures the screen width via the ref the flow already owns. */
+function useFlowScale(ref: React.RefObject<HTMLDivElement | null>) {
+  const [w, setW] = useState(780); // SSR assumption = desktop; ResizeObserver corrects after mount
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setW(width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return {
+    kT: Math.min(1.75, Math.max(1, 760 / w)),
+    kB: Math.min(1.3, Math.max(1, 640 / w)),
+  };
+}
+
 function Label({
   x, y, children, size = 8, tone = "muted", anchor = "middle", opacity = 1,
 }: {
@@ -133,10 +162,11 @@ function Label({
   size?: number; tone?: "muted" | "fg" | "live" | "bad" | "warn" | "signal";
   anchor?: "start" | "middle" | "end"; opacity?: number;
 }) {
+  const { kT } = useFlowK();
   const fill = { muted: TEXT_MUTED, fg: TEXT_FG, live: LIVE, bad: BAD, warn: WARN, signal: SIGNAL }[tone];
   return (
     <text
-      x={x} y={y} textAnchor={anchor} fontSize={size} fill={fill} className="font-mono"
+      x={x} y={y} textAnchor={anchor} fontSize={size * kT} fill={fill} className="font-mono"
       style={{
         opacity,
         transform: `translateY(${(1 - opacity) * 4}px)`,
@@ -180,6 +210,8 @@ function PolyWire({
   pts: Pt[]; litAt?: number; dashed?: boolean; drawMs?: number; T: number;
   width?: number; litColor?: string; ghost?: boolean;
 }) {
+  const { kT } = useFlowK();
+  const sw = Math.sqrt(kT); // strokes thicken mildly so hairlines stay visible
   const d = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
   const len = polyLen(pts);
   const p = litAt === undefined ? 0 : clamp01((T - litAt) / drawMs);
@@ -188,17 +220,17 @@ function PolyWire({
   return (
     <g>
       {ghost && (
-        <path d={d} fill="none" stroke={STROKE_IDLE} strokeWidth="1"
+        <path d={d} fill="none" stroke={STROKE_IDLE} strokeWidth={sw}
           strokeDasharray={dashed ? "3 4" : undefined} strokeLinejoin="round" />
       )}
       {lit && (
-        <path d={d} fill="none" stroke={litColor} strokeWidth={width} strokeLinejoin="round"
+        <path d={d} fill="none" stroke={litColor} strokeWidth={width * sw} strokeLinejoin="round"
           strokeDasharray={dashed ? "3 4" : String(len)}
           strokeDashoffset={dashed ? 0 : String(len * (1 - p))}
           style={{ transition: "stroke-dashoffset 120ms cubic-bezier(0.4, 0, 0.2, 1)", opacity: dashed ? p : 1 }} />
       )}
       {lit && !dashed && full && (
-        <path className="fx-current" d={d} fill="none" stroke={litColor} strokeWidth={width + 0.3}
+        <path className="fx-current" d={d} fill="none" stroke={litColor} strokeWidth={width * sw + 0.3}
           opacity="0.5" strokeDasharray="3 9" strokeLinejoin="round" />
       )}
     </g>
@@ -208,6 +240,8 @@ function PolyWire({
 /** Ribbon — a wide soft underlay plus a bright core on the same path.
     The visual voice of medformer's streams. */
 function Ribbon({ pts, litAt, drawMs = 800, T }: { pts: Pt[]; litAt?: number; drawMs?: number; T: number }) {
+  const { kT } = useFlowK();
+  const sw = Math.sqrt(kT);
   const d = `M ${pts.map((p) => p.join(" ")).join(" L ")}`;
   const len = polyLen(pts);
   const p = litAt === undefined ? 0 : clamp01((T - litAt) / drawMs);
@@ -215,11 +249,11 @@ function Ribbon({ pts, litAt, drawMs = 800, T }: { pts: Pt[]; litAt?: number; dr
   if (!lit) return null;
   return (
     <g>
-      <path d={d} fill="none" stroke={SIGNAL} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"
+      <path d={d} fill="none" stroke={SIGNAL} strokeWidth={9 * sw} strokeLinecap="round" strokeLinejoin="round"
         opacity={0.14 * p}
         strokeDasharray={String(len)} strokeDashoffset={String(len * (1 - p))}
         style={{ transition: "stroke-dashoffset 120ms cubic-bezier(0.4, 0, 0.2, 1)" }} />
-      <path d={d} fill="none" stroke={SIGNAL} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+      <path d={d} fill="none" stroke={SIGNAL} strokeWidth={2.4 * sw} strokeLinecap="round" strokeLinejoin="round"
         opacity={0.75 * p}
         strokeDasharray={String(len)} strokeDashoffset={String(len * (1 - p))}
         style={{ transition: "stroke-dashoffset 120ms cubic-bezier(0.4, 0, 0.2, 1)" }} />
@@ -235,6 +269,8 @@ function FlowPacket({
 }: {
   T: number; t0: number; t1: number; path: Pt[]; color?: string; r?: number;
 }) {
+  const { kT } = useFlowK();
+  const rr = r * Math.sqrt(kT);
   const at = (lag: number) => {
     const raw = clamp01((T - t0 - lag * (t1 - t0)) / (t1 - t0));
     return { ...pathPoint(path, easeInOut(raw)), raw };
@@ -246,13 +282,13 @@ function FlowPacket({
   return (
     <g>
       <g style={{ transform: `translate(${g2.x}px, ${g2.y}px)`, transition: "transform 110ms linear", opacity: 0.22 * trail }}>
-        <circle r={r * 0.5} fill={color} />
+        <circle r={rr * 0.5} fill={color} />
       </g>
       <g style={{ transform: `translate(${g1.x}px, ${g1.y}px)`, transition: "transform 110ms linear", opacity: 0.45 * trail }}>
-        <circle r={r * 0.72} fill={color} />
+        <circle r={rr * 0.72} fill={color} />
       </g>
       <g style={{ transform: `translate(${head.x}px, ${head.y}px)`, transition: "transform 110ms linear", filter: `drop-shadow(0 0 4px ${color})` }}>
-        <circle r={r} fill={color} />
+        <circle r={rr} fill={color} />
       </g>
     </g>
   );
@@ -273,6 +309,10 @@ function Chip({
     signal: { stroke: SIGNAL, text: TEXT_FG, bg: "rgba(43, 92, 255, 0.10)" },
     fg: { stroke: "rgba(245, 240, 232, 0.35)", text: TEXT_FG, bg: DARK_PANEL },
   }[tone];
+  const { kB } = useFlowK();
+  const w2 = w * kB, h2 = h * kB;
+  const x2 = x + (w - w2) / 2, y2 = y + (h - h2) / 2; // grow around the center
+  const s2 = size * kB;
   return (
     <g style={{
       opacity,
@@ -281,25 +321,27 @@ function Chip({
       transformOrigin: "center",
       transition: "opacity 420ms cubic-bezier(0.4, 0, 0.2, 1), transform 420ms cubic-bezier(0.4, 0, 0.2, 1)",
     }}>
-      <rect x={x} y={y} width={w} height={h} rx={h / 2}
+      <rect x={x2} y={y2} width={w2} height={h2} rx={h2 / 2}
         fill={palette.bg} stroke={palette.stroke} strokeWidth={ring ? 1.4 : 1}
         style={{ transition: "stroke 250ms ease" }} />
-      <text x={x + w / 2} y={y + h / 2 + size * 0.36} textAnchor="middle"
-        fontSize={size} fill={palette.text} className="font-mono">{text}</text>
+      <text x={x2 + w2 / 2} y={y2 + h2 / 2 + s2 * 0.36} textAnchor="middle"
+        fontSize={s2} fill={palette.text} className="font-mono">{text}</text>
     </g>
   );
 }
 
 /** Verdict stamp — a boxed, double-ruled mark that thumps in when `on`. */
 function Stamp({ cx, cy, text, tone, on }: { cx: number; cy: number; text: string; tone: "live" | "bad"; on: boolean }) {
-  const w = text.length * 4.6 + 16;
+  const { kB } = useFlowK();
+  const w = (text.length * 4.6 + 16) * kB;
+  const h = 18 * kB;
   const color = tone === "live" ? LIVE : BAD;
   return (
     <Reveal on={on} pop>
       <g opacity="0.95">
-        <rect x={cx - w / 2} y={cy - 9} width={w} height={18} rx={3} fill="rgba(10, 9, 6, 0.6)" stroke={color} strokeWidth="1.2" />
-        <rect x={cx - w / 2 + 2.5} y={cy - 6.5} width={w - 5} height={13} rx={1.5} fill="none" stroke={color} strokeWidth="0.6" strokeDasharray="2 2" opacity="0.7" />
-        <text x={cx} y={cy + 2.8} textAnchor="middle" fontSize="7" fill={color} className="font-mono" style={{ letterSpacing: "0.1em" }}>
+        <rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={3 * kB} fill="rgba(10, 9, 6, 0.6)" stroke={color} strokeWidth="1.2" />
+        <rect x={cx - w / 2 + 2.5} y={cy - h / 2 + 2.5} width={w - 5} height={h - 5} rx={1.5} fill="none" stroke={color} strokeWidth="0.6" strokeDasharray="2 2" opacity="0.7" />
+        <text x={cx} y={cy + 2.8 * kB} textAnchor="middle" fontSize={7 * kB} fill={color} className="font-mono" style={{ letterSpacing: "0.1em" }}>
           {text}
         </text>
       </g>
@@ -309,13 +351,15 @@ function Stamp({ cx, cy, text, tone, on }: { cx: number; cy: number; text: strin
 
 /** Open-top inbox slot that a delivered packet lands in. */
 function Slot({ x, y, label, lit }: { x: number; y: number; label: string; lit: boolean }) {
+  const { kB } = useFlowK();
+  const w = 30 * kB, h = 16 * kB;
   const stroke = lit ? LIVE : "rgba(245, 240, 232, 0.3)";
   return (
     <g>
-      <path d={`M ${x} ${y} L ${x} ${y + 16} L ${x + 30} ${y + 16} L ${x + 30} ${y}`}
+      <path d={`M ${x} ${y} L ${x} ${y + h} L ${x + w} ${y + h} L ${x + w} ${y}`}
         fill="none" stroke={stroke} strokeWidth="1.2" strokeLinecap="round"
         style={{ transition: "stroke 300ms ease", filter: lit ? "drop-shadow(0 0 4px rgba(22, 163, 74, 0.45))" : undefined }} />
-      <Label x={x + 15} y={y + 30} size={7.5} tone={lit ? "live" : "muted"}>{label}</Label>
+      <Label x={x + w} y={y + h + 14} size={7.5} anchor={kB > 1 ? "end" : "middle"} tone={lit ? "live" : "muted"}>{label}</Label>
     </g>
   );
 }
@@ -327,22 +371,23 @@ function Tile({
   cx: number; cy: number; label: string;
   tone?: "idle" | "active" | "pass"; land?: number;
 }) {
-  const w = 40, h = 28;
+  const { kB } = useFlowK();
+  const w = 40 * kB, h = 28 * kB;
   const x = cx - w / 2, y = cy - h / 2;
   const stroke = tone === "pass" ? LIVE : tone === "active" ? SIGNAL : "rgba(245, 240, 232, 0.3)";
   const glow = tone === "pass" ? "drop-shadow(0 0 5px rgba(22, 163, 74, 0.5))"
     : tone === "active" ? "drop-shadow(0 0 5px rgba(43, 92, 255, 0.55))" : undefined;
   return (
     <g key={land} className={land ? "fx-land" : undefined}>
-      <rect x={x} y={y} width={w} height={h} rx={5} fill={DARK_PANEL} stroke={stroke} strokeWidth="1.2"
+      <rect x={x} y={y} width={w} height={h} rx={5 * kB} fill={DARK_PANEL} stroke={stroke} strokeWidth="1.2"
         style={{ transition: "stroke 300ms ease", filter: glow }} />
       {/* folded corner */}
-      <path d={`M ${x + w - 8} ${y} L ${x + w} ${y + 8} L ${x + w - 8} ${y + 8} Z`}
+      <path d={`M ${x + w - 8 * kB} ${y} L ${x + w} ${y + 8 * kB} L ${x + w - 8 * kB} ${y + 8 * kB} Z`}
         fill={DARK_BG} stroke={stroke} strokeWidth="1" style={{ transition: "stroke 300ms ease" }} />
-      <text x={cx - 2} y={cy + 2.8} textAnchor="middle" fontSize="6.8" fill={TEXT_FG} className="font-mono">{label}</text>
+      <text x={cx - 2 * kB} y={cy + 2.8 * kB} textAnchor="middle" fontSize={6.8 * kB} fill={TEXT_FG} className="font-mono">{label}</text>
       {tone === "pass" && (
-        <g transform={`translate(${x + w - 2} ${y - 2})`}>
-          <circle r="6" fill="#0A0906" stroke={LIVE} strokeWidth="1.1" />
+        <g transform={`translate(${x + w - 2 * kB} ${y - 2 * kB})`}>
+          <circle r={6 * kB} fill="#0A0906" stroke={LIVE} strokeWidth="1.1" />
           <path d="M -2.6 0.2 L -0.6 2.4 L 3 -2" pathLength={10} className="fx-draw"
             fill="none" stroke={LIVE} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </g>
@@ -390,10 +435,11 @@ function Ambient() {
 }
 
 function Screen({
-  name, pill, pillTone = "muted", innerRef, children,
+  name, pill, pillTone = "muted", innerRef, kT, kB, children,
 }: {
   name: string; pill: string; pillTone?: "ok" | "warn" | "muted";
   innerRef?: React.Ref<HTMLDivElement>;
+  kT: number; kB: number;
   children: React.ReactNode;
 }) {
   return (
@@ -408,10 +454,12 @@ function Screen({
     >
       <style>{FX_CSS}</style>
       <ToolHeader name={name} pill={pill} pillTone={pillTone} dark pulse />
-      <div className="overflow-x-auto flex justify-center">
-        <svg viewBox="0 0 560 264" style={{ width: "100%", maxWidth: 780, minWidth: 560, display: "block" }}>
-          <Ambient />
-          {children}
+      <div className="flex justify-center">
+        <svg viewBox="0 0 560 264" style={{ width: "100%", maxWidth: 780, display: "block" }}>
+          <FlowK.Provider value={{ kT, kB }}>
+            <Ambient />
+            {children}
+          </FlowK.Provider>
         </svg>
       </div>
     </div>
@@ -423,7 +471,6 @@ function Screen({
    the barred gate, and allowed syscalls ride an elbow into one of two inbox
    slots that receive a verdict stamp. Denied syscalls die at the wall.   */
 
-const K_AGENT: Pt = [156, 122];
 const K_WALL = 273;
 const K_FS: Pt = [516, 86];
 const K_NET: Pt = [516, 162];
@@ -433,6 +480,7 @@ const K_ELBOW_NET: Pt[] = [[297, 130], [318, 130], [318, 162], [506, 162]];
 export function KernexFlow() {
   const screenRef = useRef<HTMLDivElement>(null);
   const T = useLoopT(12400, screenRef);
+  const { kT, kB } = useFlowScale(screenRef);
   const show = (at: number) => T >= at;
   const inWindow = (a: number, b: number) => T >= a && T < b;
 
@@ -441,8 +489,12 @@ export function KernexFlow() {
   const wallTone = wallPass ? LIVE : wallBlock ? BAD : "rgba(245, 240, 232, 0.3)";
   const wallLit = wallPass || wallBlock;
 
-  // terminal typing — each attempt types its syscall into the agent window
-  const syscalls = ['open(./data/q3.csv)', 'connect(telemetry.vendor.io)'];
+  // terminal typing — each attempt types its syscall into the agent window.
+  // On compact screens the syscall shortens so it fits the grown panel.
+  const tf = Math.min(kT, 1.55); // terminal text factor
+  const syscalls = kT > 1.25
+    ? ["open(q3.csv)", "connect(telemetry…)"]
+    : ["open(./data/q3.csv)", "connect(telemetry.vendor.io)"];
   const active = T < 3400 ? 0 : 1;
   const typeAt = T < 3400 ? 300 : T < 8600 ? 3400 : 8600;
   const line = syscalls[active];
@@ -450,28 +502,33 @@ export function KernexFlow() {
   const typing = chars < line.length;
   const paused = inWindow(5600, 8600);
 
+  // terminal panel — grows a little on compact screens, centered on the wire
+  const pW = Math.max(132, 132 * kB), pH = 76 * Math.min(kB, 1.3);
+  const pX = 24, pY = 122 - pH / 2 - 2;
+  const K_AGENT: Pt = [pX + pW, 122];
+
   return (
-    <Screen innerRef={screenRef} name="kernex · syscall gate" pill="deny by default" pillTone="warn">
+    <Screen innerRef={screenRef} kT={kT} kB={kB} name="kernex · syscall gate" pill="deny by default" pillTone="warn">
       {/* agent terminal */}
       <g>
-        <rect x={24} y={88} width={132} height={76} rx={6} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.28)" strokeWidth="1" />
-        <line x1={24} y1={104} x2={156} y2={104} stroke="rgba(245, 240, 232, 0.14)" strokeWidth="1" />
-        {[[32, 96], [41, 96], [50, 96]].map(([cx, cy], i) => (
-          <circle key={i} cx={cx} cy={cy} r="1.8" fill={i === 0 ? BAD : i === 1 ? WARN : LIVE} opacity="0.8" />
+        <rect x={pX} y={pY} width={pW} height={pH} rx={6} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.28)" strokeWidth="1" />
+        <line x1={pX} y1={pY + 16 * kB} x2={pX + pW} y2={pY + 16 * kB} stroke="rgba(245, 240, 232, 0.14)" strokeWidth="1" />
+        {[[pX + 8, pY + 8], [pX + 17, pY + 8], [pX + 26, pY + 8]].map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r={1.8 * kB} fill={i === 0 ? BAD : i === 1 ? WARN : LIVE} opacity="0.8" />
         ))}
-        <text x={148} y={99} textAnchor="end" fontSize="5.5" fill={TEXT_MUTED} className="font-mono">agent</text>
-        <text x={34} y={120} fontSize="6" fill={TEXT_MUTED} className="font-mono">python agent.py</text>
-        <text x={34} y={134} fontSize="6" fill={TEXT_FG} className="font-mono">
+        <text x={pX + pW - 8} y={pY + 11} textAnchor="end" fontSize={5.5 * kB} fill={TEXT_MUTED} className="font-mono">agent</text>
+        <text x={pX + 10} y={pY + 32 * kB} fontSize={6 * Math.min(kT, 1.4)} fill={TEXT_MUTED} className="font-mono">python agent.py</text>
+        <text x={pX + 10} y={pY + 46 * kB} fontSize={6 * tf} fill={TEXT_FG} className="font-mono">
           {"$ "}
           {line.slice(0, chars)}
           <tspan className={typing ? "fx-blink" : undefined} fill={SIGNAL}>▌</tspan>
         </text>
         {/* status LED */}
-        <circle cx={146} cy={152} r="2.4"
+        <circle cx={pX + pW - 10} cy={pY + pH - 12} r={2.4 * kB}
           fill={paused ? WARN : LIVE}
           className={paused ? undefined : "fx-dot"}
           style={{ transition: "fill 300ms ease" }} />
-        <text x={136} y={154.5} textAnchor="end" fontSize="5" fill={TEXT_MUTED} className="font-mono">
+        <text x={pX + pW - 20} y={pY + pH - 9.5} textAnchor="end" fontSize={5 * kB} fill={TEXT_MUTED} className="font-mono">
           {paused ? "paused" : "running"}
         </text>
       </g>
@@ -521,7 +578,7 @@ export function KernexFlow() {
 
       {/* verdict stamps */}
       <Stamp cx={430} cy={64} text="ALLOWED" tone="live" on={show(2600)} />
-      <Stamp cx={205} cy={100} text="BLOCKED" tone="bad" on={inWindow(4800, 8600)} />
+      <Stamp cx={205} cy={kB > 1 ? 60 : 100} text="BLOCKED" tone="bad" on={inWindow(4800, 8600)} />
       <Stamp cx={430} cy={140} text="ALLOWED · once" tone="live" on={show(10800)} />
 
       {/* pause + operator decision */}
@@ -561,6 +618,8 @@ const M_GLIDES: Array<[number, number, number, number]> = [
 export function MercerFlow() {
   const screenRef = useRef<HTMLDivElement>(null);
   const T = useLoopT(12400, screenRef);
+  const { kT, kB } = useFlowScale(screenRef);
+  const kIx = Math.min(kT, 1.4); // station index numbers
 
   const question = "top customers by spend this quarter?";
   const qChars = Math.floor(clamp01((T - 100) / 900) * question.length);
@@ -585,19 +644,19 @@ export function MercerFlow() {
   const sqlChars = Math.floor(clamp01((T - 7300) / 1600) * (sql1.length + sql2.length + 1));
   const sqlDone = sqlChars > sql1.length + sql2.length;
 
-  // candidate race on three lanes above the rail
+  // candidate race on three lanes above the rail (lanes spread when compact)
   const lanes = [
-    { t: "CoT @0.0", y: 92, win: true, start: 3900, end: 4450 },
-    { t: "D&C @0.2", y: 110, win: false, start: 4050, end: 4700 },
-    { t: "P&E @0.3", y: 128, win: false, start: 4200, end: 4650 },
+    { t: "CoT @0.0", y: kB > 1 ? 86 : 92, win: true, start: 3900, end: 4450 },
+    { t: "D&C @0.2", y: kB > 1 ? 112 : 110, win: false, start: 4050, end: 4700 },
+    { t: "P&E @0.3", y: kB > 1 ? 138 : 128, win: false, start: 4200, end: 4650 },
   ];
   const winner = T >= 4600;
 
   return (
-    <Screen innerRef={screenRef} name="mercer · question → sql" pill="6 stages · local gpu">
+    <Screen innerRef={screenRef} kT={kT} kB={kB} name="mercer · question → sql" pill="6 stages · local gpu">
       {/* question */}
-      <rect x={14} y={24} width={208} height={26} rx={13} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.25)" strokeWidth="1" />
-      <text x={28} y={40} fontSize={7.2} fill={TEXT_FG} className="font-mono">
+      <rect x={14} y={24} width={208 * kB} height={26 * kB} rx={13 * kB} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.25)" strokeWidth="1" />
+      <text x={28} y={24 + 16.5 * kB} fontSize={7.2 * Math.min(kT, 1.5)} fill={TEXT_FG} className="font-mono">
         {question.slice(0, qChars)}
         {qChars < question.length && <tspan className="fx-blink" fill={SIGNAL}>▌</tspan>}
       </text>
@@ -617,22 +676,22 @@ export function MercerFlow() {
         const state = stationState(i);
         return (
           <g key={name}>
-            <text x={M_X[i]} y={133} textAnchor="middle" fontSize="5" fill={TEXT_MUTED} className="font-mono">
+            <text x={M_X[i]} y={150 - 9 * kB - 8} textAnchor="middle" fontSize={5 * kIx} fill={TEXT_MUTED} className="font-mono">
               {String(i + 1).padStart(2, "0")}
             </text>
-            <rect x={M_X[i] - 5} y={141} width={10} height={18} rx={2}
+            <rect x={M_X[i] - 5 * kB} y={M_RAIL_Y - 9 * kB} width={10 * kB} height={18 * kB} rx={2}
               fill={state === "done" ? "rgba(43, 92, 255, 0.15)" : DARK_PANEL}
               stroke={state === "idle" ? "rgba(245, 240, 232, 0.28)" : SIGNAL} strokeWidth="1.1"
               style={{ transition: "stroke 300ms ease, fill 300ms ease" }} />
             {state === "done" && (
-              <path d={`M ${M_X[i] - 3} 150.4 L ${M_X[i] - 0.8} 152.8 L ${M_X[i] + 3.4} 147.6`}
+              <path d={`M ${M_X[i] - 3 * kB} ${150 + 0.4 * kB} L ${M_X[i] - 0.8 * kB} ${150 + 2.8 * kB} L ${M_X[i] + 3.4 * kB} ${150 - 2.4 * kB}`}
                 pathLength={10} className="fx-draw" fill="none" stroke={SIGNAL} strokeWidth="1.3"
                 strokeLinecap="round" strokeLinejoin="round" />
             )}
             {state === "active" && (
-              <circle className="fx-halo" cx={M_X[i]} cy={150} r={13} fill="none" stroke={SIGNAL} strokeWidth="1" />
+              <circle className="fx-halo" cx={M_X[i]} cy={M_RAIL_Y} r={13 * kB} fill="none" stroke={SIGNAL} strokeWidth="1" />
             )}
-            <Label x={M_X[i]} y={176} size={7} tone={state === "idle" ? "muted" : "fg"}>{name}</Label>
+            <Label x={M_X[i]} y={150 + 9 * kB + 16} size={7} tone={state === "idle" ? "muted" : "fg"}>{name}</Label>
           </g>
         );
       })}
@@ -640,8 +699,8 @@ export function MercerFlow() {
       {/* read-head */}
       {headOn && (
         <g style={{ transform: `translate(${hx - M_X[0]}px, 0px)`, transition: "transform 120ms cubic-bezier(0.4, 0, 0.2, 1)", filter: "drop-shadow(0 0 5px rgba(43, 92, 255, 0.7))" }}>
-          <rect x={M_X[0] - 8} y={144} width={16} height={12} rx={3} fill={SIGNAL} />
-          <rect x={M_X[0] - 3} y={147.5} width={6} height={5} rx={1} fill="#0A0906" opacity="0.55" />
+          <rect x={M_X[0] - 8 * kB} y={M_RAIL_Y - 6 * kB} width={16 * kB} height={12 * kB} rx={3} fill={SIGNAL} />
+          <rect x={M_X[0] - 3 * kB} y={M_RAIL_Y - 2.5 * kB} width={6 * kB} height={5 * kB} rx={1} fill="#0A0906" opacity="0.55" />
         </g>
       )}
 
@@ -653,7 +712,7 @@ export function MercerFlow() {
         const on = T >= l.start;
         return (
           <g key={l.t} style={{ opacity: dim ? 0.28 : 1, transition: "opacity 350ms ease" }}>
-            <line x1={252} y1={l.y} x2={404} y2={l.y} stroke={l.win && winner ? LIVE : STROKE_IDLE} strokeWidth="1"
+            <line x1={252} y1={l.y} x2={kB > 1 ? 420 : 404} y2={l.y} stroke={l.win && winner ? LIVE : STROKE_IDLE} strokeWidth="1"
               style={{ transition: "stroke 300ms ease" }} />
             {on && (
               <g style={{ transform: `translate(${cx - 256}px, 0px)`, transition: "transform 110ms linear" }}>
@@ -669,20 +728,20 @@ export function MercerFlow() {
       {/* external inputs */}
       <Wire x1={152} y1={204} x2={152} y2={163} T={T} litAt={2100} dashed />
       <Chip x={96} y={206} w={112} h={20} size={6.5} text="schema · 214 tables" tone={T >= 2100 ? "signal" : "muted"} />
-      <Wire x1={504} y1={204} x2={504} y2={163} T={T} litAt={6700} dashed />
-      <Chip x={448} y={206} w={112} h={20} size={6.5} text="taxonomy rules" tone={T >= 6700 ? "signal" : "muted"} />
+      <Wire x1={kB > 1 ? 483 : 504} y1={204} x2={kB > 1 ? 496 : 504} y2={163} T={T} litAt={6700} dashed />
+      <Chip x={kB > 1 ? 427 : 448} y={206} w={112} h={20} size={6.5} text="taxonomy rules" tone={T >= 6700 ? "signal" : "muted"} />
 
       {/* SQL out */}
-      <rect x={376} y={20} width={170} height={48} rx={8}
+      <rect x={556 - 170 * Math.min(kB, 1.25)} y={20 - (48 * Math.min(kB, 1.25) - 48) / 2} width={170 * Math.min(kB, 1.25)} height={48 * Math.min(kB, 1.25)} rx={8}
         fill="#0A0906" stroke={sqlDone ? LIVE : DARK_LINE} strokeWidth="1"
         style={{
           transition: "stroke 300ms ease, filter 300ms ease",
           filter: sqlDone ? "drop-shadow(0 0 6px rgba(22, 163, 74, 0.35))" : undefined,
         }} />
-      <text x={388} y={38} fontSize={6.4} fill={TEXT_FG} className="font-mono">
+      <text x={556 - 170 * Math.min(kB, 1.25) + 12} y={20 + 18 * Math.min(kB, 1.25)} fontSize={6.4 * Math.min(kT, 1.5)} fill={TEXT_FG} className="font-mono">
         {sql1.slice(0, Math.max(0, Math.min(sql1.length, sqlChars))) || " "}
       </text>
-      <text x={388} y={52} fontSize={6.4} fill={TEXT_FG} className="font-mono">
+      <text x={556 - 170 * Math.min(kB, 1.25) + 12} y={20 + 32 * Math.min(kB, 1.25)} fontSize={6.4 * Math.min(kT, 1.5)} fill={TEXT_FG} className="font-mono">
         {sqlChars > sql1.length ? sql2.slice(0, sqlChars - sql1.length - 1) : " "}
       </text>
       <Reveal on={sqlDone}>
@@ -708,10 +767,26 @@ const MD_TETHER_2 = quadPts([260, 226], [150, 196], [80, 124], 24);
 export function MedFormerFlow() {
   const screenRef = useRef<HTMLDivElement>(null);
   const T = useLoopT(12400, screenRef);
+  const { kT, kB } = useFlowScale(screenRef);
   const show = (at: number) => T >= at;
   const inWindow = (a: number, b: number) => T >= a && T < b;
 
-  const sweepY = 60 + clamp01((T - 500) / 1200) * 68;
+  // k-aware geometry: film, ribbons, evidence tabs, answer panel
+  const fW = 110 * kB, fH = 84 * kB, fX = 24 - (fW - 110) / 2, fY = 52 - (fH - 84) / 2;
+  const IMG = quadPts([fX + fW, fY + fH / 2], [220 + (fW - 110) / 2, 96], [286, 113], 24);
+  const chipCX = 24 + 84, chipCY = 170 + 12;
+  const TXT = quadPts([chipCX + 84 * kB, chipCY + 2], [252 + (chipCX + 84 * kB - 192), 184], [287, 127], 24);
+  const MERGED = quadPts([300 + 15 * kB, 114], [370, 108], [420, 110], 16);
+  const tabW = 72 * Math.min(kB, 1.15), tabH = 12 * Math.min(kB, 1.15);
+  const tabX = 298 - tabW / 2;
+  const pB = Math.min(kB, 1.25);
+  const pW = 116 * pB, pH = 56 * pB, pX = 420 - (pW - 116), pY = 84 - (pH - 56) / 2;
+  const pTx = pX + 12, f1 = 6.8 * Math.min(kT, 1.6);
+  const bcx = fX + fW / 2, bcy = fY + fH * 0.44; // finding-box center
+  const T1 = quadPts([pX + pW - 14, pY + pH + 2], [440, 196], [tabX + tabW - 4, 228], 24);
+  const T2 = quadPts([tabX + 4, 226], [150, 196], [bcx, bcy + fH * 0.24 + 4], 24);
+
+  const sweepY = (fY + 8) + clamp01((T - 500) / 1200) * (fH - 16);
   const sweeping = T >= 500 && T <= 1700;
   const fused = show(5600);
 
@@ -720,28 +795,28 @@ export function MedFormerFlow() {
   const aChars = Math.floor(clamp01((T - 5800) / 1700) * (answer1.length + answer2.length + 1));
   const answerDone = aChars > answer1.length + answer2.length;
 
-  const enc = pathPoint(MD_IMG_RIBBON, 0.48);
-  const llm = pathPoint(MD_TXT_RIBBON, 0.48);
+  const enc = pathPoint(IMG, 0.48);
+  const llm = pathPoint(TXT, 0.48);
 
   return (
-    <Screen innerRef={screenRef} name="medformer · grounded answers" pill="idefics2-ft + rag">
+    <Screen innerRef={screenRef} kT={kT} kB={kB} name="medformer · grounded answers" pill="idefics2-ft + rag">
       {/* the film — lightbox panel with scan */}
-      <rect x={24} y={52} width={110} height={84} rx={6} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.28)" strokeWidth="1" />
-      <rect x={32} y={60} width={94} height={68} rx={3} fill="rgba(0, 0, 0, 0.35)" />
-      {[76, 91, 106].map((y) => (
-        <line key={y} x1={34} y1={y} x2={124} y2={y} stroke="rgba(245, 240, 232, 0.05)" strokeWidth="1" />
+      <rect x={fX} y={fY} width={fW} height={fH} rx={6} fill={DARK_PANEL} stroke="rgba(245, 240, 232, 0.28)" strokeWidth="1" />
+      <rect x={fX + 8} y={fY + 8} width={fW - 16} height={fH - 16} rx={3} fill="rgba(0, 0, 0, 0.35)" />
+      {[0.3, 0.5, 0.7].map((r) => (
+        <line key={r} x1={fX + 10} y1={fY + fH * r} x2={fX + fW - 10} y2={fY + fH * r} stroke="rgba(245, 240, 232, 0.05)" strokeWidth="1" />
       ))}
       {sweeping && (
         <g>
-          <rect x={32} y={60} width={94} height={Math.max(0, sweepY - 60)} fill="rgba(43, 92, 255, 0.08)"
+          <rect x={fX + 8} y={fY + 8} width={fW - 16} height={Math.max(0, sweepY - fY - 8)} fill="rgba(43, 92, 255, 0.08)"
             style={{ transition: "height 110ms linear" }} />
-          <line x1={32} y1={sweepY} x2={126} y2={sweepY} stroke={SIGNAL} strokeWidth="1.5" opacity="0.75"
+          <line x1={fX + 8} y1={sweepY} x2={fX + fW - 8} y2={sweepY} stroke={SIGNAL} strokeWidth="1.5" opacity="0.75"
             style={{ filter: "drop-shadow(0 0 3px rgba(43, 92, 255, 0.6))" }} />
         </g>
       )}
       {/* the finding — regrounded green once the loop closes */}
       <Reveal on={show(1900)} pop>
-        <rect x={52} y={78} width={54} height={40} rx={2} fill="none"
+        <rect x={fX + fW * 0.25} y={fY + fH * 0.2} width={fW * 0.5} height={fH * 0.48} rx={2} fill="none"
           stroke={show(9500) ? LIVE : SIGNAL} strokeWidth="1.2"
           style={{
             transition: "stroke 300ms ease",
@@ -749,96 +824,96 @@ export function MedFormerFlow() {
           }} />
       </Reveal>
       {inWindow(9500, 10100) && (
-        <circle key="ground" className="fx-deny" cx={79} cy={98} r={12} fill="none" stroke={LIVE} strokeWidth="1.2" />
+        <circle key="ground" className="fx-deny" cx={bcx} cy={bcy} r={12 * kB} fill="none" stroke={LIVE} strokeWidth="1.2" />
       )}
-      <Label x={79} y={150} size={6.5}>chest-xray-042.png</Label>
+      <Label x={fX + fW / 2} y={fY + fH + 13} size={6.5}>chest-xray-042.png</Label>
 
       {/* question */}
       <Chip x={24} y={170} w={168} h={24} size={6.8} tone="fg" text="what does the opacity suggest?" opacity={show(800) ? 1 : 0} />
 
       {/* streams into the aperture */}
-      <Ribbon pts={MD_IMG_RIBBON} litAt={2100} T={T} />
-      <Ribbon pts={MD_TXT_RIBBON} litAt={2900} T={T} />
-      <Ribbon pts={MD_MERGED} litAt={5600} drawMs={500} T={T} />
+      <Ribbon pts={IMG} litAt={2100} T={T} />
+      <Ribbon pts={TXT} litAt={2900} T={T} />
+      <Ribbon pts={MERGED} litAt={5600} drawMs={500} T={T} />
 
       {/* transforms riding the ribbons */}
       <g key={show(2900) ? "enc-done" : show(2100) ? "enc-active" : "enc-idle"} className={show(2100) ? "fx-pop" : undefined}>
-        <rect x={enc.x - 23} y={enc.y - 8} width={46} height={16} rx={8}
+        <rect x={enc.x - 23 * kB} y={enc.y - 8 * kB} width={46 * kB} height={16 * kB} rx={8}
           fill={DARK_PANEL} stroke={show(2100) ? SIGNAL : "rgba(245, 240, 232, 0.3)"} strokeWidth="1.1"
           style={{ filter: show(2100) ? "drop-shadow(0 0 4px rgba(43, 92, 255, 0.5))" : undefined, transition: "stroke 300ms ease" }} />
-        <text x={enc.x} y={enc.y + 2.6} textAnchor="middle" fontSize="6.5"
+        <text x={enc.x} y={enc.y + 2.6 * kB} textAnchor="middle" fontSize={6.5 * Math.min(kT, 1.4)}
           fill={show(2100) ? TEXT_FG : TEXT_MUTED} className="font-mono">encoder</text>
       </g>
       <g key={show(3700) ? "llm-done" : show(2900) ? "llm-active" : "llm-idle"} className={show(2900) ? "fx-pop" : undefined}>
-        <rect x={llm.x - 27} y={llm.y - 8} width={54} height={16} rx={8}
+        <rect x={llm.x - 27 * kB} y={llm.y - 8 * kB} width={54 * kB} height={16 * kB} rx={8}
           fill={DARK_PANEL} stroke={show(2900) ? SIGNAL : "rgba(245, 240, 232, 0.3)"} strokeWidth="1.1"
           style={{ filter: show(2900) ? "drop-shadow(0 0 4px rgba(43, 92, 255, 0.5))" : undefined, transition: "stroke 300ms ease" }} />
-        <text x={llm.x} y={llm.y + 2.6} textAnchor="middle" fontSize="6.2"
+        <text x={llm.x} y={llm.y + 2.6 * kB} textAnchor="middle" fontSize={6.2 * Math.min(kT, 1.4)}
           fill={show(2900) ? TEXT_FG : TEXT_MUTED} className="font-mono">llama-3.1-ft</text>
       </g>
 
       {/* fusion aperture — spins while both streams arrive, then locks */}
       <g key={fused ? "ring-done" : show(4900) ? "ring-spin" : "ring-idle"}>
-        <circle cx={300} cy={118} r={15} fill={fused ? "rgba(43, 92, 255, 0.16)" : "none"}
+        <circle cx={300} cy={118} r={15 * kB} fill={fused ? "rgba(43, 92, 255, 0.16)" : "none"}
           stroke={SIGNAL} strokeWidth="1.4"
           strokeDasharray={fused || T < 4900 ? undefined : "16 6"}
           className={!fused && T >= 4900 ? "fx-spin" : undefined}
           style={{ filter: T >= 4900 ? "drop-shadow(0 0 5px rgba(43, 92, 255, 0.6))" : undefined, transition: "fill 300ms ease" }} />
-        <circle cx={300} cy={118} r={7} fill={fused ? SIGNAL : DARK_PANEL} stroke={fused ? SIGNAL : "rgba(245, 240, 232, 0.3)"} strokeWidth="1"
+        <circle cx={300} cy={118} r={7 * kB} fill={fused ? SIGNAL : DARK_PANEL} stroke={fused ? SIGNAL : "rgba(245, 240, 232, 0.3)"} strokeWidth="1"
           style={{ transition: "fill 300ms ease, stroke 300ms ease" }} />
       </g>
       <Label x={300} y={152} size={7} tone={fused ? "fg" : "muted"}>fusion</Label>
       {inWindow(5600, 6200) && (
-        <circle key="fuse" className="fx-deny" cx={300} cy={118} r={16} fill="none" stroke={SIGNAL} strokeWidth="1.2" />
+        <circle key="fuse" className="fx-deny" cx={300} cy={118} r={16 * kB} fill="none" stroke={SIGNAL} strokeWidth="1.2" />
       )}
 
       {/* evidence drawer */}
-      {[208, 222, 236].map((y, i) => {
+      {[206, 222, 238].map((y, i) => {
         const cited = i === 1;
         const lit = show(4600) && cited;
         return (
           <g key={y} className={lit ? "fx-pop" : undefined}>
-            <rect x={262} y={y} width={72} height={12} rx={3}
+            <rect x={tabX} y={y} width={tabW} height={tabH} rx={3}
               fill={DARK_PANEL} stroke={lit ? LIVE : "rgba(245, 240, 232, 0.22)"} strokeWidth="1"
               style={{ transition: "stroke 300ms ease" }} />
-            <text x={268} y={y + 8} fontSize={5.5} fill={lit ? LIVE : TEXT_MUTED} className="font-mono">
+            <text x={tabX + 6} y={y + 8 * Math.min(kB, 1.15)} fontSize={5.5 * Math.min(kT, 1.3)} fill={lit ? LIVE : TEXT_MUTED} className="font-mono">
               {cited ? "[1] radiograph.md" : `doc-0${i + 1}`}
             </text>
           </g>
         );
       })}
-      <Label x={298} y={260} size={6}>evidence · reranked</Label>
+      <Label x={298} y={261} size={6}>evidence · reranked</Label>
 
       {/* answer */}
-      <rect x={420} y={84} width={116} height={56} rx={8}
+      <rect x={pX} y={pY} width={pW} height={pH} rx={8}
         fill={DARK_PANEL} stroke={answerDone ? SIGNAL : "rgba(245, 240, 232, 0.25)"} strokeWidth="1"
         style={{
           transition: "stroke 300ms ease, filter 300ms ease",
           filter: answerDone ? "drop-shadow(0 0 6px rgba(43, 92, 255, 0.35))" : undefined,
         }} />
-      <text x={432} y={106} fontSize={6.8} fill={TEXT_FG} className="font-mono">
+      <text x={pTx} y={pY + 22 * pB} fontSize={f1} fill={TEXT_FG} className="font-mono">
         {answer1.slice(0, Math.max(0, Math.min(answer1.length, aChars))) || " "}
       </text>
-      <text x={432} y={120} fontSize={6.8} fill={TEXT_FG} className="font-mono">
+      <text x={pTx} y={pY + 36 * pB} fontSize={f1} fill={TEXT_FG} className="font-mono">
         {aChars > answer1.length ? answer2.slice(0, aChars - answer1.length - 1) : " "}
       </text>
       <Reveal on={show(7800)}>
-        <text x={526} y={133} fontSize={6.5} fill={LIVE} className="font-mono">[1]</text>
+        <text x={pX + pW - 10} y={pY + pH - 7} textAnchor="end" fontSize={6.5 * Math.min(kT, 1.3)} fill={LIVE} className="font-mono">[1]</text>
       </Reveal>
 
       {/* the grounding loop — answer cites the drawer, the drawer cites the film */}
-      <PolyWire pts={MD_TETHER_1} T={T} litAt={8200} dashed drawMs={600} />
-      <PolyWire pts={MD_TETHER_2} T={T} litAt={9000} dashed drawMs={600} />
+      <PolyWire pts={T1} T={T} litAt={8200} dashed drawMs={600} />
+      <PolyWire pts={T2} T={T} litAt={9000} dashed drawMs={600} />
 
       {/* packets */}
       {T >= 2200 && T < 2900 && (
-        <FlowPacket T={T} t0={2200} t1={2900} path={MD_IMG_RIBBON} />
+        <FlowPacket T={T} t0={2200} t1={2900} path={IMG} />
       )}
       {T >= 3000 && T < 3700 && (
-        <FlowPacket T={T} t0={3000} t1={3700} path={MD_TXT_RIBBON} />
+        <FlowPacket T={T} t0={3000} t1={3700} path={TXT} />
       )}
       {T >= 3900 && T < 4600 && (
-        <FlowPacket T={T} t0={3900} t1={4600} path={[[298, 228], [296, 180], [289, 132]]} color={LIVE} r={3} />
+        <FlowPacket T={T} t0={3900} t1={4600} path={[[298, 228], [294, 176], [289, 134]]} color={LIVE} r={3} />
       )}
     </Screen>
   );
@@ -853,24 +928,35 @@ export function MedFormerFlow() {
 export function CiraxFlow() {
   const screenRef = useRef<HTMLDivElement>(null);
   const T = useLoopT(11000, screenRef);
+  const { kT, kB } = useFlowScale(screenRef);
   const show = (at: number) => T >= at;
 
   const searching = T < 3600;
   const locked = show(3600);
 
+  // tile geometry (Tile grows by kB): centers + half-sizes
+  const C = {
+    docx: { x: 90, y: 136 }, pdf: { x: 285, y: 88 }, odt: { x: 285, y: 184 }, png: { x: 475, y: 136 },
+  };
+  const hw = 20 * kB, hh = 14 * kB; // half-width / half-height of a tile
   // directed edges of the conversion graph, in discovery order
   const EDGES: Array<{
-    pts: Pt[]; w: string; at: number; chain?: boolean; chip: { x: number; y: number; w: number };
+    pts: Pt[]; w: string; score: string; engine: string; at: number; chain?: boolean;
   }> = [
-    { pts: [[110, 128], [265, 94]], w: "pandoc · 0.98", at: 400, chain: true, chip: { x: 161, y: 92, w: 54 } },
-    { pts: [[110, 146], [265, 178]], w: "libreoffice · 0.92", at: 900, chip: { x: 158, y: 170, w: 62 } },
-    { pts: [[285, 170], [285, 102]], w: "0.90", at: 1400, chip: { x: 293, y: 130, w: 30 } },
-    { pts: [[305, 94], [455, 128]], w: "libvips · 0.94", at: 1900, chain: true, chip: { x: 352, y: 92, w: 52 } },
-    { pts: [[305, 178], [455, 146]], w: "calibre · 0.58", at: 2400, chip: { x: 352, y: 170, w: 52 } },
+    { pts: [[C.docx.x + hw, C.docx.y - 8], [C.pdf.x - hw, C.pdf.y + 6]], w: "pandoc · 0.98", score: "0.98", engine: "pandoc", at: 400, chain: true },
+    { pts: [[C.docx.x + hw, C.docx.y + 10], [C.odt.x - hw, C.odt.y - 6]], w: "libreoffice · 0.92", score: "0.92", engine: "libreoffice", at: 900 },
+    { pts: [[C.odt.x, C.odt.y - hh], [C.pdf.x, C.pdf.y + hh]], w: "0.90", score: "0.90", engine: "", at: 1400 },
+    { pts: [[C.pdf.x + hw, C.pdf.y - 6], [C.png.x - hw, C.png.y - 8]], w: "libvips · 0.94", score: "0.94", engine: "libvips", at: 1900, chain: true },
+    { pts: [[C.odt.x + hw, C.odt.y - 6], [C.png.x - hw, C.png.y + 10]], w: "calibre · 0.58", score: "0.58", engine: "calibre", at: 2400 },
   ];
+  const mid = (i: number) => {
+    const [x1, y1] = EDGES[i].pts[0];
+    const [x2, y2] = EDGES[i].pts[1];
+    return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+  };
 
   return (
-    <Screen innerRef={screenRef} name="cirax · route search" pill="109 formats · dijkstra">
+    <Screen innerRef={screenRef} kT={kT} kB={kB} name="cirax · route search" pill="109 formats · dijkstra">
       {/* edges — base hairlines; rejected branches dim once the route locks */}
       {EDGES.map((e, i) => {
         const rejected = locked && !e.chain;
@@ -899,33 +985,46 @@ export function CiraxFlow() {
       })}
 
       {/* locked chain — a shallow V across the top */}
-      <Wire x1={110} y1={128} x2={265} y2={94} T={T} litAt={3600} drawMs={500} />
-      <Wire x1={305} y1={94} x2={455} y2={128} T={T} litAt={3900} drawMs={500} />
+      <PolyWire pts={EDGES[0].pts} T={T} litAt={3600} drawMs={500} />
+      <PolyWire pts={EDGES[3].pts} T={T} litAt={3900} drawMs={500} />
 
       {/* sandbox */}
-      <rect x={44} y={56} width={478} height={156} rx={10}
+      <rect x={kB > 1 ? 38 : 44} y={kB > 1 ? 50 : 56} width={kB > 1 ? 490 : 478} height={kB > 1 ? 168 : 156} rx={10}
         fill={show(4200) ? "rgba(43, 92, 255, 0.035)" : "none"}
         stroke={TEXT_MUTED} strokeWidth="1" strokeDasharray="4 5"
         style={{ opacity: show(4200) ? 0.55 : 0, transition: "opacity 500ms ease, fill 500ms ease" }} />
       <Reveal on={show(4200)}>
-        <Label x={56} y={48} size={6.5} anchor="start">bwrap jail · no network</Label>
+        <Label x={kB > 1 ? 50 : 56} y={kB > 1 ? 44 : 48} size={6.5} anchor="start">bwrap jail · no network</Label>
       </Reveal>
 
       {/* file tiles in their columns */}
-      <Tile cx={90} cy={136} label=".docx" tone={show(3600) ? "active" : "idle"} />
-      <Tile cx={285} cy={88} label="pdf" tone={show(3600) ? "active" : "idle"} land={show(5800) && !show(6400) ? 1 : 0} />
+      <Tile cx={C.docx.x} cy={C.docx.y} label=".docx" tone={show(3600) ? "active" : "idle"} />
+      <Tile cx={C.pdf.x} cy={C.pdf.y} label="pdf" tone={show(3600) ? "active" : "idle"} land={show(5800) && !show(6400) ? 1 : 0} />
       <g style={{ opacity: locked ? 0.4 : 1, transition: "opacity 500ms ease" }}>
-        <Tile cx={285} cy={184} label="odt" tone="idle" />
+        <Tile cx={C.odt.x} cy={C.odt.y} label="odt" tone="idle" />
       </g>
-      <Tile cx={475} cy={136} label=".png" tone={show(6400) ? "pass" : show(3600) ? "active" : "idle"} land={show(6400) ? 1 : 0} />
+      <Tile cx={C.png.x} cy={C.png.y} label=".png" tone={show(6400) ? "pass" : show(3600) ? "active" : "idle"} land={show(6400) ? 1 : 0} />
 
-      {/* weight chips anchored to their edges */}
+      {/* engine + score on each edge: full chips on desktop, score-only on mobile */}
       {EDGES.map((e, i) => {
         const rejected = locked && !e.chain;
         const tone = e.chain && show(4100) ? "signal" : "muted";
+        const m = mid(i);
+        if (kB > 1) {
+          return (
+            <g key={i} style={{ opacity: rejected ? 0.35 : 1, transition: "opacity 500ms ease" }}>
+              <text x={m.x + (i === 2 ? 8 : 0)} y={m.y + (i === 2 ? 3 : i === 0 || i === 3 ? -8 : 14)}
+                textAnchor={i === 2 ? "start" : "middle"} fontSize={5.2 * kT}
+                fill={tone === "signal" ? TEXT_FG : TEXT_MUTED} className="font-mono"
+                style={{ transition: "fill 300ms ease" }}>{e.score}</text>
+            </g>
+          );
+        }
         return (
           <g key={i} style={{ opacity: rejected ? 0.35 : 1, transition: "opacity 500ms ease" }}>
-            <Chip x={e.chip.x} y={e.chip.y} w={e.chip.w} h={12} size={5.2} text={e.w} tone={tone} ring={tone === "signal"} />
+            <Chip
+              x={m.x - e.w.length * 2.6 - 6} y={m.y + (i === 0 || i === 3 ? -20 : 8)} w={e.w.length * 5.2 + 12} h={12}
+              size={5.2} text={e.w} tone={tone} ring={tone === "signal"} />
           </g>
         );
       })}
@@ -947,23 +1046,23 @@ export function CiraxFlow() {
       })}
 
       {/* searching pill */}
-      <text x={544} y={24} textAnchor="end" fontSize={7} fill={TEXT_MUTED}
+      <text x={544} y={24} textAnchor="end" fontSize={7 * Math.min(kT, 1.5)} fill={TEXT_MUTED}
         className="font-mono" style={{ opacity: searching ? 1 : 0, transition: "opacity 300ms ease" }}>
         <tspan className={searching ? "fx-blink" : undefined}>●</tspan> searching · dijkstra
       </text>
 
       {/* run status while the ghost executes the chain */}
-      <text x={502} y={204} textAnchor="end" fontSize={6} fill={TEXT_MUTED}
+      <text x={kB > 1 ? 516 : 502} y={kB > 1 ? 208 : 204} textAnchor="end" fontSize={6 * Math.min(kT, 1.5)} fill={TEXT_MUTED}
         className="font-mono" style={{ opacity: T >= 5200 && T < 6400 ? 1 : 0, transition: "opacity 300ms ease" }}>
         <tspan className={T >= 5200 && T < 6400 ? "fx-blink" : undefined}>▸</tspan> running · 2 hops
       </text>
 
       {/* file ghost hopping the locked chain */}
       {T >= 5200 && T < 5800 && (
-        <FlowPacket T={T} t0={5200} t1={5800} path={[[110, 128], [265, 94]]} r={3} />
+        <FlowPacket T={T} t0={5200} t1={5800} path={EDGES[0].pts} r={3} />
       )}
       {T >= 5800 && T < 6400 && (
-        <FlowPacket T={T} t0={5800} t1={6400} path={[[305, 94], [455, 128]]} r={3} />
+        <FlowPacket T={T} t0={5800} t1={6400} path={EDGES[3].pts} r={3} />
       )}
 
       {/* results */}
