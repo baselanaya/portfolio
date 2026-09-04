@@ -3,7 +3,8 @@ import WorkIndex from "@/components/work-index";
 import { projects } from "@/lib/projects";
 
 export const metadata: Metadata = {
-  title: "Work — Basel Anaya",
+  title: "Work",
+  alternates: { canonical: "/work" },
   description:
     "Projects by Basel Anaya — AI infrastructure, kernel security, LLM inference systems, and data pipelines.",
 };

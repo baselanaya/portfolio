@@ -4,6 +4,7 @@ import Link from "next/link";
 import { compileMDX } from "next-mdx-remote/rsc";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
+import Breadcrumbs from "@/components/breadcrumbs";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 
 interface PageProps {
@@ -20,8 +21,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = getPostBySlug(slug);
   if (!post) return {};
   return {
-    title: `${post.title} — Basel Anaya`,
+    title: post.title,
     description: post.summary,
+    alternates: { canonical: `/blog/${slug}` },
   };
 }
 
@@ -53,6 +55,13 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <main className="px-[5vw] pt-36 pb-24">
       <div className="max-w-3xl mx-auto">
+      <Breadcrumbs
+        trail={[
+          { name: "home", path: "/" },
+          { name: "writing", path: "/blog" },
+          { name: post.title, path: `/blog/${slug}` },
+        ]}
+      />
       {/* Back link */}
       <Link
         href="/blog"

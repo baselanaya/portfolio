@@ -5,6 +5,7 @@ import AsciiCover from "@/components/ascii-cover";
 import StatusBadge from "@/components/status-badge";
 import { projects } from "@/lib/projects";
 import { getAllPosts } from "@/lib/blog";
+import { testimonials } from "@/lib/testimonials";
 
 const CAPABILITIES = [
   {
@@ -282,6 +283,29 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Testimonials — renders only with real quotes ──────── */}
+      {testimonials.length > 0 && (
+        <section className="px-[5vw] py-20 border-t border-border">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="font-display font-semibold tracking-tight mb-10" style={{ fontSize: "clamp(28px, 4vw, 44px)" }}>
+              What people say
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {testimonials.map((t) => (
+                <figure key={t.name} className="rounded-2xl border border-border bg-surface p-6 flex flex-col gap-4">
+                  <blockquote style={{ fontSize: "15px", lineHeight: 1.7, color: "var(--color-text)" }}>
+                    “{t.quote}”
+                  </blockquote>
+                  <figcaption className="font-mono" style={{ fontSize: "11px", color: "var(--color-muted)" }}>
+                    {t.name} — {t.role}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Contact CTA — dark island ─────────────────────────── */}
       <section className="theme-dark px-[5vw] py-20">

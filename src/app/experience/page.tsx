@@ -8,7 +8,8 @@ import {
 } from "@/lib/experience";
 
 export const metadata: Metadata = {
-  title: "Experience — Basel Anaya",
+  title: "Experience",
+  alternates: { canonical: "/experience" },
   description:
     "Work history, education, and certifications — Basel Anaya, AI Engineer specialized in LLM systems, agentic pipelines, and document AI.",
 };

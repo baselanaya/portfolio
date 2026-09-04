@@ -145,6 +145,19 @@ body::before {
   background: rgba(255, 255, 255, 0.4);
   -webkit-backdrop-filter: blur(28px) saturate(1.7);
   backdrop-filter: blur(28px) saturate(1.7);
+}
+@supports (backdrop-filter: url("#liquid-glass")) {
+  .glass {
+    /* iOS-26-style liquid refraction via the inline SVG displacement filter */
+    backdrop-filter: url("#liquid-glass") blur(3px) saturate(1.7) brightness(1.04);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  }
+}
+.glass {
+  /* restore base declarations after the @supports block for cascade clarity */
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  backdrop-filter: blur(28px) saturate(1.7);
   border: 1px solid rgba(255, 255, 255, 0.65);
   box-shadow:
     0 24px 60px -28px rgba(22, 21, 15, 0.32),

@@ -48,6 +48,13 @@ export default function Footer() {
         >
           now
         </Link>
+        <Link
+          href="/privacy"
+          className="font-mono text-muted hover:text-signal transition-colors duration-150"
+          style={{ fontSize: "12px" }}
+        >
+          privacy
+        </Link>
       </div>
     </footer>
   );

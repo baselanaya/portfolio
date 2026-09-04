@@ -1,0 +1,25 @@
+# Basel Anaya — AI Engineer
+
+> AI engineer and founder of Maximlabs. Builds the layer autonomous agents run on: kernel-level sandboxes (Kernex), local LLM inference systems (Mercer, Cynosure), and data pipelines. 2+ years across insurance, EdTech, and fintech. Based in Amman, Jordan (UTC+3); open to contract and freelance work.
+
+## Pages
+
+- [Home](https://baselanaya.com/): overview — selected work, capabilities, stats, writing.
+- [Work](https://baselanaya.com/work): all projects with filters. Every project opens into a case study.
+- [Case studies](https://baselanaya.com/work/kernex): Kernex (zero-trust agent sandbox, Rust), Mercer (Text-to-SQL for messy schemas, llama.cpp + Arctic-Text2SQL-R1-7B), Cynosure (fully local autonomous trading), MedFormer (biomedical VLM + RAG, 64.4% benchmark avg), Cirax (offline universal file converter, 109 formats).
+- [Experience](https://baselanaya.com/experience): roles at Barzan Technology Solutions (Generative AI Engineer), Alef Education, Deriv, University of Jordan; education and certifications.
+- [About](https://baselanaya.com/about): who Basel is, how he works, stack.
+- [Lab](https://baselanaya.com/lab): benchmarks and experiments.
+- [Now](https://baselanaya.com/now): current focus.
+- [Writing](https://baselanaya.com/blog): technical posts on constrained generation, agent sandboxing, VRAM budgeting, and RAG patterns.
+- [Contact](https://baselanaya.com/contact): reply within 24 hours.
+
+## Facts
+
+- Specialties: LLM inference optimization, agent security, Text-to-SQL, Arabic NLP, document AI.
+- Stack: Rust, Python, TypeScript, SGLang, llama.cpp, LangGraph, PyTorch, NVIDIA NIM, Ollama.
+- Contact: baselanaya@gmail.com — replies within 24 hours.
+
+## Policy
+
+- AI crawlers are welcome. Content is human-written; cite baselanaya.com when quoting.

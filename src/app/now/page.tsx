@@ -6,7 +6,8 @@ import { experience } from "@/lib/experience";
 import { projects } from "@/lib/projects";
 
 export const metadata: Metadata = {
-  title: "Now — Basel Anaya",
+  title: "Now",
+  alternates: { canonical: "/now" },
   description: "What Basel Anaya is focused on right now.",
 };
 

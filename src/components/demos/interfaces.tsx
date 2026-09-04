@@ -104,7 +104,7 @@ export function MercerInterface() {
     ["taxonomy correction", "schema/join/filter/logic"],
   ];
   return (
-    <Chrome title="mercer · app/ui — Vite + React chat :5173 → :8000">
+    <Chrome title="mercer — query playground · arctic-r1-7b · 100% local">
       <div className="grid grid-cols-1 sm:grid-cols-5">
         <div className="sm:col-span-3 p-4 flex flex-col gap-3 border-b sm:border-b-0 sm:border-r" style={{ borderColor: "var(--color-border)" }}>
           <div

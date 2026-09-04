@@ -4,7 +4,8 @@ import BlogList from "@/components/blog-list";
 import { getAllPosts, getAllTags } from "@/lib/blog";
 
 export const metadata: Metadata = {
-  title: "Blog — Basel Anaya",
+  title: "Blog",
+  alternates: { canonical: "/blog" },
   description: "Writing on AI infrastructure, LLM inference, systems programming, and more.",
 };
 

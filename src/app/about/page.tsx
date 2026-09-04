@@ -5,7 +5,8 @@ import AsciiCover from "@/components/ascii-cover";
 import { education, experience } from "@/lib/experience";
 
 export const metadata: Metadata = {
-  title: "About — Basel Anaya",
+  title: "About",
+  alternates: { canonical: "/about" },
   description: "Who Basel Anaya is — AI engineer, founder of Maximlabs, based in Amman, Jordan.",
 };
 
@@ -113,6 +114,12 @@ export default function AboutPage() {
             <p className="font-mono mt-2" style={{ fontSize: "11px", color: "var(--color-muted)", letterSpacing: "0.06em" }}>
               Résumé available on request — email me.
             </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-5 font-mono" style={{ fontSize: "11px" }}>
+              <span style={{ color: "var(--color-muted)" }}>start here:</span>
+              <Link href="/work" className="text-text hover:text-signal transition-colors duration-150">the work →</Link>
+              <Link href="/lab" className="text-text hover:text-signal transition-colors duration-150">the lab →</Link>
+              <Link href="/now" className="text-text hover:text-signal transition-colors duration-150">what I'm doing now →</Link>
+            </div>
           </div>
         </div>
       </div>

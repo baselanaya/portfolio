@@ -6,9 +6,11 @@ import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import AsciiCover from "@/components/ascii-cover";
 import StatusBadge from "@/components/status-badge";
+import Breadcrumbs from "@/components/breadcrumbs";
 import ProjectDemo from "@/components/demos/project-demo";
 import { projects, getProjectBySlug } from "@/lib/projects";
 import { getCaseStudy } from "@/lib/case-studies";
+import { getAllPosts } from "@/lib/blog";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -23,8 +25,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const project = getProjectBySlug(slug);
   if (!project) return {};
   return {
-    title: `${project.name} — Basel Anaya`,
+    title: project.name,
     description: project.tagline,
+    alternates: { canonical: `/work/${project.slug}` },
   };
 }
 
@@ -60,6 +63,14 @@ export default async function ProjectPage({ params }: PageProps) {
         >
           ← back to work
         </Link>
+
+        <Breadcrumbs
+          trail={[
+            { name: "home", path: "/" },
+            { name: "work", path: "/work" },
+            { name: project.name, path: `/work/${project.slug}` },
+          ]}
+        />
 
         {/* Header */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -167,6 +178,43 @@ export default async function ProjectPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Related writing — internal links from overlapping topics */}
+        {(() => {
+          const projectTags = new Set(project.tags.map((t) => t.toLowerCase()));
+          const related = getAllPosts()
+            .map((post) => ({
+              post,
+              score: post.tags.filter((t) => projectTags.has(t.toLowerCase())).length,
+            }))
+            .filter((x) => x.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 2);
+          if (related.length === 0) return null;
+          return (
+            <section className="mt-20">
+              <h2 className="font-display font-semibold tracking-tight mb-6" style={{ fontSize: "22px" }}>
+                Related writing
+              </h2>
+              <div className="flex flex-col gap-1">
+                {related.map(({ post }) => (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group flex flex-wrap items-baseline gap-x-4 py-4 border-b border-border"
+                  >
+                    <span className="font-display font-medium group-hover:text-signal transition-colors duration-150" style={{ fontSize: "16px" }}>
+                      {post.title}
+                    </span>
+                    <span className="font-mono ml-auto" style={{ fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.08em" }}>
+                      read →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Prev / next */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-20 pt-10 border-t border-border">

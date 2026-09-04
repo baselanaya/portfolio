@@ -3,7 +3,8 @@ import PageHeader from "@/components/page-header";
 import LabContent from "@/components/lab-content";
 
 export const metadata: Metadata = {
-  title: "Lab — Basel Anaya",
+  title: "Lab",
+  alternates: { canonical: "/lab" },
   description: "Experiments, benchmarks, and games — the playground side of Basel Anaya's work.",
 };
 

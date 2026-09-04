@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { sendMessage, type ContactResult } from "@/app/contact/actions";
 
 export default function ContactForm() {
-  const [result, setResult] = useState<ContactResult | null>(null);
   const [pending, setPending] = useState(false);
+  const [result, setResult] = useState<ContactResult | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -15,8 +17,13 @@ export default function ContactForm() {
 
     try {
       const res = await sendMessage(new FormData(e.currentTarget));
+      if (res.success) {
+        // delivery confirmed — route to the thank-you page
+        formRef.current?.reset();
+        router.push("/thank-you");
+        return;
+      }
       setResult(res);
-      if (res.success) formRef.current?.reset();
     } catch {
       setResult({ success: false, error: "send_failed" });
     } finally {
@@ -94,12 +101,7 @@ export default function ContactForm() {
         {pending ? "> sending..." : "> send message"}
       </button>
 
-      {/* Result feedback */}
-      {result?.success && (
-        <p className="font-mono text-[12px] text-amber">
-          Message sent. I&apos;ll be in touch.
-        </p>
-      )}
+      {/* Result feedback — success routes to /thank-you */}
       {result?.fallback && (
         <p className="font-mono text-[12px] text-muted">
           Email me directly:{" "}
