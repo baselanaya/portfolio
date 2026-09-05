@@ -21,6 +21,8 @@ export interface JourneyPhase {
 export interface Journey {
   slug: string;
   title: string;
+  /** Short name for breadcrumbs and tight chrome */
+  shortTitle: string;
   kicker: string;
   description: string;
   phases: JourneyPhase[];
@@ -38,10 +40,11 @@ const d = (
 
 export const gpuProgramming: Journey = {
   slug: "gpu-programming",
-  title: "GPU Programming",
+  title: "GPU Programming: Zero to Reading Production Kernels",
+  shortTitle: "GPU Programming",
   kicker: "30 days",
   description:
-    "A daily journey from “what is a warp” to reading real inference kernels. One topic a day, fifteen to twenty minutes each, in plain language with real numbers from an RTX 4070.",
+    "A daily journey from “what is a warp” to reading production kernel code. One topic a day, fifteen to twenty minutes each, in plain language with real numbers from an RTX 4070. It ends at being able to open a production kernel and reason about it. Tensor cores, multi-GPU collectives, and PTX-level tuning are a deliberate Part 2.",
   phases: [
     { name: "Foundations & mental model", days: [1, 6] },
     { name: "Memory", days: [7, 12] },
@@ -80,7 +83,7 @@ export const gpuProgramming: Journey = {
     d(27, "day-27-reading-production-kernels", "Reading production kernel code", "Taking everything so far into an actual vLLM/SGLang codebase."),
     d(28, "day-28-profile-and-optimize", "Profile and optimize", "Take the reduction or matmul kernel from days 15–16 and improve it using what you now know."),
     d(29, "day-29-capstone-fused-kernel", "Capstone: a fused kernel from scratch", "A small, complete Triton kernel, designed and built end to end."),
-    d(30, "day-30-where-to-go-next", "Where to go next", "Contributing to open-source kernel libraries, and what mastery looks like from here."),
+    d(30, "day-30-where-to-go-next", "Where to go next", "Contributing to open-source kernel libraries, and why mastery here is an ongoing practice tied to hardware that changes every generation."),
   ],
 };
 

@@ -45,7 +45,10 @@ export default function LabPage() {
                     </span>
                   </div>
 
-                  <h2 className="font-display font-semibold tracking-tight" style={{ fontSize: "40px" }}>
+                  <h2
+                    className="font-display font-semibold tracking-tight"
+                    style={{ fontSize: journey.title.length > 30 ? "30px" : "40px", lineHeight: 1.2 }}
+                  >
                     {journey.title}
                   </h2>
                   <p

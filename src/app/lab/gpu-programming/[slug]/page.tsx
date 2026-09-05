@@ -54,7 +54,7 @@ export default async function ChapterPage({ params }: PageProps) {
           <p className="font-mono" style={{ fontSize: "10px", letterSpacing: "0.2em", color: "var(--color-signal)" }}>
             <Link href="/lab" className="hover:text-signal transition-colors">LAB</Link>
             {" / "}
-            <span style={{ color: "var(--color-muted)" }}>{journey.title.toUpperCase()}</span>
+            <span style={{ color: "var(--color-muted)" }}>{journey.shortTitle.toUpperCase()}</span>
           </p>
           <p
             className="font-mono mt-6"
