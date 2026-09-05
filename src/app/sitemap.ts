@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/blog";
 import { projects } from "@/lib/projects";
 import { experience } from "@/lib/experience";
+import { journeys } from "@/lib/journeys";
 
 const BASE_URL = "https://baselanaya.com";
 
@@ -11,6 +12,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // derive real last-modified dates instead of stamping "now" on everything.
   const latestPost = posts[0]?.date ? new Date(posts[0].date) : new Date();
   const latestRole = experience[0]?.start ? new Date(experience[0].start) : new Date();
+
+  const journeyEntries: MetadataRoute.Sitemap = journeys.flatMap((journey) =>
+    journey.days
+      .filter((d) => d.status === "published")
+      .map((d) => ({
+        url: `${BASE_URL}/lab/${journey.slug}/${d.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }))
+  );
 
   const blogEntries: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
@@ -73,9 +85,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${BASE_URL}/lab`,
       lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
+      changeFrequency: "weekly",
+      priority: 0.7,
     },
+    ...journeyEntries,
     {
       url: `${BASE_URL}/now`,
       lastModified: new Date(),
