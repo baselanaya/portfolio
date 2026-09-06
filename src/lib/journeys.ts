@@ -55,7 +55,7 @@ export const gpuProgramming: Journey = {
   ],
   days: [
     d(1, "day-01-why-gpus-are-shaped-this-way", "Why GPUs are shaped this way", "CPU optimizes latency for one thread; GPU assumes latency and hides it with massive parallelism.", "published"),
-    d(2, "day-02-anatomy-of-a-gpu", "Anatomy of a GPU", "Streaming multiprocessors, cores, warp schedulers, the memory hierarchy at a glance."),
+    d(2, "day-02-anatomy-of-a-gpu", "Anatomy of a GPU", "Streaming multiprocessors, cores, warp schedulers, the memory hierarchy at a glance.", "published"),
     d(3, "day-03-thread-hierarchy", "The thread hierarchy", "Grid → block → warp. What each level actually is, and who schedules what."),
     d(4, "day-04-warps-and-simt", "Warps and SIMT", "32 threads, one instruction, lockstep execution. Why this number matters everywhere downstream."),
     d(5, "day-05-warp-divergence", "Warp divergence", "What happens when threads in a warp disagree on a branch, and what that costs.", "queued", true),

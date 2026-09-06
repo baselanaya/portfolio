@@ -10,6 +10,7 @@ import {
   ClockCounterClockwise,
   Command,
   EnvelopeSimple,
+  Flask,
   User,
 } from "@phosphor-icons/react";
 
@@ -22,6 +23,7 @@ interface SiteStatus {
 // The work index lives at /work; /projects redirects there (next.config)
 const NAV_LINKS = [
   { href: "/work", label: "work", Icon: Briefcase },
+  { href: "/lab", label: "lab", Icon: Flask },
   { href: "/experience", label: "experience", Icon: ClockCounterClockwise },
   { href: "/blog", label: "blog", Icon: Article },
   { href: "/about", label: "about", Icon: User },

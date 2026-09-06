@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { journeys, getJourney, getPublishedDay } from "@/lib/journeys";
 import Day01 from "@/components/journeys/day-01";
+import Day02 from "@/components/journeys/day-02";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const CHAPTERS: Record<string, () => React.JSX.Element> = {
   "day-01-why-gpus-are-shaped-this-way": Day01,
+  "day-02-anatomy-of-a-gpu": Day02,
 };
 
 export default async function ChapterPage({ params }: PageProps) {
